@@ -15,6 +15,7 @@ class Tile : public virtual Drawable {
     Vector2 pos;
     Vector2 dim;
     Color color;
+    bool selected;
     
 public:
 
@@ -32,5 +33,8 @@ public:
 
     Color* getColor();
     void setColor( Color color );
+
+    bool isSelected() const;
+    void setSelected( bool selected );
     
 };

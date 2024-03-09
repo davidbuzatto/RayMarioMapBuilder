@@ -15,7 +15,8 @@ Tile::Tile( Vector2 pos, Color color )
     :
     pos( pos ),
     dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
-    color( color ) {
+    color( color ),
+    selected( false ) {
 }
 
 Tile::~Tile() = default;
@@ -45,4 +46,12 @@ Color* Tile::getColor() {
 
 void Tile::setColor( Color color ) {
     this->color = color;
+}
+
+bool Tile::isSelected() const {
+    return selected;
+}
+
+void Tile::setSelected( bool selected ) {
+    this->selected = selected;
 }

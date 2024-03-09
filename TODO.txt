@@ -1,0 +1,13 @@
+preparar camadas;
+tamanho do mapa -> realocar e/ou reposicionar tiles
+editar de fato os tiles
+    tipo do tile (sólido, sólido para inimigos, sólido por cima, não sólido, textura, visível)
+    blocos (já implementados)
+        bloco de mensagem
+
+configurações globais do mapa:
+    background
+    cor do fundo
+    tile set -> provavelmente não haverá, pois no editor terão todos os tipos disponíveis
+    tempo para terminar
+    mensagem (para cada bloco de mensagem)
