@@ -26,10 +26,16 @@ public:
 
     void inputAndUpdate();
     void draw() override;
+    void draw( Vector2 drawPos );
 
     Vector2& getPos();
     Vector2& getDim();
     Rectangle getRectangle() const;
+
+    void setPos( Vector2 pos );
+    void setPos( int x, int y );
+    void setX( int x );
+    void setY( int y );
 
     Color* getColor();
     void setColor( Color color );

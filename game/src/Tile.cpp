@@ -29,6 +29,10 @@ void Tile::draw() {
     DrawRectangle( pos.x, pos.y, dim.x, dim.y, color );
 }
 
+void Tile::draw( Vector2 drawPos ) {
+    DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, color );
+}
+
 Vector2& Tile::getPos() {
     return pos;
 }
@@ -38,6 +42,23 @@ Vector2& Tile::getDim() {
 
 Rectangle Tile::getRectangle() const {
     return Rectangle( pos.x, pos.y, dim.x, dim.y );
+}
+
+void Tile::setPos( Vector2 pos ) {
+    this->pos = pos;
+}
+
+void Tile::setPos( int x, int y ) {
+    pos.x = x;
+    pos.y = y;
+}
+
+void Tile::setX( int x ) {
+    pos.x = x;
+}
+
+void Tile::setY( int y ) {
+    pos.y = y;
 }
 
 Color* Tile::getColor() {

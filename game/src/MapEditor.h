@@ -21,25 +21,39 @@ class MapEditor : public virtual Drawable {
     Vector2 dim;
     GameWorld *gw;
 
+    int minLines;
+    int maxLines;
     int lines;
-    int columns;
+    int previousLines;
     int pressedLine;
+
+    int minColumns;
+    int maxColumns;
+    int columns;
+    int previousColumns;
     int pressedColumn;
+
+    int startLine;
+    int startColumn;
+    int viewOffsetLine;
+    int viewOffsetColumn;
 
     std::vector<Tile*> tiles;
     Tile *firstSelectedTile;
 
+    Rectangle spinnerLinesRect;
+    Rectangle spinnerColumnsRect;
+
     Rectangle colorPickerContainerRect;
     Rectangle colorPickerRect;
 
-    void updateLinesAndColumns();
-    void computePressedLineAndColumn( Vector2 mousePos, int *line, int *column ) const;
-    void selectTile( Vector2 mousePos );
-    void deselectTile( Vector2 mousePos );
+    void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
+    void selectTile( Vector2 &mousePos );
+    void deselectTile( Vector2 &mousePos );
     void deselectTiles();
-    bool isTileSelected( Vector2 mousePos ) const;
+    bool isTileSelected( Vector2 &mousePos ) const;
     bool isTilePositionValid( int line, int column ) const;
-    bool isMouseInsideEditor( const Vector2 *mousePos ) const;
+    bool isMouseInsideEditor( const Vector2 &mousePos ) const;
 
 public:
 
@@ -49,9 +63,10 @@ public:
     void inputAndUpdate();
     void draw() override;
 
+    void relocateTiles( std::vector<Tile*> &tiles );
+
     Vector2& getPos();
     Vector2& getDim();
-    Rectangle getRectangle() const;
 
 };
 

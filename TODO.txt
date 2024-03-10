@@ -1,5 +1,7 @@
-preparar camadas;
-tamanho do mapa -> realocar e/ou reposicionar tiles
+desenhar o índice das linhas e das colunas
+remover dimensão do editor de mapa? (ainda está usando largura e algura? acho que não!)
+preparar camadas (provavelmente 7)
+
 editar de fato os tiles
     tipo do tile (sólido, sólido para inimigos, sólido por cima, não sólido, textura, visível)
     blocos (já implementados)

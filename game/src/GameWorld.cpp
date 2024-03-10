@@ -14,7 +14,7 @@
 
 GameWorld::GameWorld()
     :
-    mapEditor( Vector2( 0, 0 ), Vector2( 576, 448), this ),
+    mapEditor( Vector2( 0, 0 ), Vector2( 576, 448 ), this ),
     selectedTile( nullptr ) {
 }
 
