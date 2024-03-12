@@ -14,10 +14,9 @@
 #undef RAYGUI_IMPLEMENTATION
 
 
-MapEditor::MapEditor( Vector2 pos, Vector2 dim, GameWorld *gw )
+MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     :
     pos( pos ),
-    dim( dim ),
     gw( gw ),
 
     minLines( 14 ),
@@ -32,20 +31,22 @@ MapEditor::MapEditor( Vector2 pos, Vector2 dim, GameWorld *gw )
     previousColumns( minColumns ),
     pressedColumn( -1 ),
 
+    tileComposerDim( Vector2( minColumns * Tile::TILE_WIDTH, minLines * Tile::TILE_WIDTH ) ),
+
     startLine( lines - minLines ),
     startColumn( columns - minColumns ),
     viewOffsetLine( 0 ),
     viewOffsetColumn( 0 ),
     
     firstSelectedTile( nullptr ),
-    spinnerLinesRect( Rectangle( pos.x + dim.x + 50, pos.y + 10, 200, 20 ) ),
+    spinnerLinesRect( Rectangle( pos.x + tileComposerDim.x + 90, pos.y + 10, 200, 20 ) ),
     spinnerColumnsRect( Rectangle( spinnerLinesRect.x, spinnerLinesRect.y + spinnerLinesRect.height + 10, 200, 20 ) ),
-    colorPickerContainerRect( Rectangle( pos.x + dim.x + 300, pos.y + 10, 245, 220 ) ),
+    colorPickerContainerRect( Rectangle( pos.x + tileComposerDim.x + 300, pos.y + 10, 245, 220 ) ),
     colorPickerRect( Rectangle( colorPickerContainerRect.x + 10, colorPickerContainerRect.y + 10, 200, 200 ) ) {
 
     for ( int i = 0; i < lines; i++ ) {
         for ( int j = 0; j < columns; j++ ) {
-            tiles.push_back( new Tile( Vector2( j * Tile::TILE_WIDTH, i * Tile::TILE_WIDTH ), BLUE ) );
+            tiles.push_back( new Tile( Vector2( j * Tile::TILE_WIDTH, i * Tile::TILE_WIDTH ), WHITE ) );
         }
     }
 
@@ -61,8 +62,8 @@ void MapEditor::computePressedLineAndColumn( Vector2 &mousePos, int &line, int &
 
     if ( isMouseInsideEditor( mousePos ) ) {
 
-        line = static_cast<int>( mousePos.y ) / Tile::TILE_WIDTH + startLine;
-        column = static_cast<int>( mousePos.x ) / Tile::TILE_WIDTH + startColumn;
+        line = ( static_cast<int>( mousePos.y ) - pos.y ) / Tile::TILE_WIDTH + startLine;
+        column = ( static_cast<int>( mousePos.x ) - pos.x ) / Tile::TILE_WIDTH + startColumn;
 
         if ( !isTilePositionValid( line, column ) ) {
             line = - 1;
@@ -212,9 +213,17 @@ void MapEditor::inputAndUpdate() {
 
     const int mouseWheelMove = GetMouseWheelMove();
     if ( mouseWheelMove > 0 ) {
-        viewOffsetLine++;
+        if ( IsKeyDown( KEY_LEFT_SHIFT ) ) {
+            viewOffsetColumn++;
+        } else {
+            viewOffsetLine++;
+        }
     } else if ( mouseWheelMove ) {
-        viewOffsetLine--;
+        if ( IsKeyDown( KEY_LEFT_SHIFT ) ) {
+            viewOffsetColumn--;
+        } else {
+            viewOffsetLine--;
+        }
     }
 
     if ( IsKeyPressed( KEY_W ) || IsKeyPressed( KEY_UP ) ) {
@@ -254,27 +263,36 @@ void MapEditor::draw() {
 
     for ( int i = startLine; i < startLine + minLines; i++ ) {
         for ( int j = startColumn; j < startColumn + minColumns; j++ ) {
-            tiles[i*columns + j]->draw( Vector2( ( j - startColumn ) * Tile::TILE_WIDTH, ( i - startLine ) * Tile::TILE_WIDTH ) );
+            tiles[i*columns + j]->draw( Vector2( pos.x + ( j - startColumn ) * Tile::TILE_WIDTH, pos.y + ( i - startLine ) * Tile::TILE_WIDTH ) );
         }
     }
 
-    DrawRectangleLines( pos.x, pos.y, minColumns * Tile::TILE_WIDTH, minLines * Tile::TILE_WIDTH, BLACK );
+    DrawRectangle( pos.x + tileComposerDim.x, pos.y, Tile::TILE_WIDTH, minLines * Tile::TILE_WIDTH + 1, Fade( LIGHTGRAY, 0.5 ) );
+    DrawRectangle( pos.x-1, pos.y + tileComposerDim.y, minColumns * Tile::TILE_WIDTH + 1, Tile::TILE_WIDTH, Fade( LIGHTGRAY, 0.5 ) );
 
-    for ( int i = 1; i < minLines; i++ ) {
-        DrawLine( pos.x, pos.y + i * Tile::TILE_WIDTH, pos.x + minColumns * Tile::TILE_WIDTH, pos.y + i * Tile::TILE_WIDTH, BLACK );
+    for ( int i = 0; i <= minLines + 1; i++ ) {
+        DrawLine( pos.x-1, pos.y + i * Tile::TILE_WIDTH, pos.x + minColumns * Tile::TILE_WIDTH, pos.y + i * Tile::TILE_WIDTH, BLACK );
+        if ( i < minLines ) {
+            const char* t = TextFormat( "%d", startLine + i + 1 );
+            DrawText( t, pos.x + tileComposerDim.x + Tile::TILE_WIDTH / 2 - MeasureText( t, 10 ) / 2, pos.y + i * Tile::TILE_WIDTH + 12, 10, BLACK );
+        }
     }
 
-    for ( int i = 1; i < minColumns; i++ ) {
-        DrawLine( pos.x + i * Tile::TILE_WIDTH, pos.y, pos.x + i * Tile::TILE_WIDTH, pos.y + minLines * Tile::TILE_WIDTH, BLACK );
+    for ( int i = 0; i <= minColumns + 1; i++ ) {
+        DrawLine( pos.x + i * Tile::TILE_WIDTH, pos.y, pos.x + i * Tile::TILE_WIDTH, pos.y + minLines * Tile::TILE_WIDTH + 1, BLACK );
+        if ( i < minColumns ) {
+            const char* t = TextFormat( "%d", startColumn + i + 1 );
+            DrawText( t, pos.x + i * Tile::TILE_WIDTH + Tile::TILE_WIDTH / 2 - MeasureText( t, 10 ) / 2, pos.y + tileComposerDim.y + 12, 10, BLACK );
+        }
     }
 
     for ( int i = startLine; i < startLine + minLines; i++ ) {
         for ( int j = startColumn; j < startColumn + minColumns; j++ ) {
             if ( tiles[i * columns + j]->isSelected() ) {
-                Vector2 pos( ( j - startColumn ) * Tile::TILE_WIDTH, ( i - startLine ) * Tile::TILE_WIDTH );
-                Vector2 dim( Tile::TILE_WIDTH, Tile::TILE_WIDTH );
-                DrawRectangleLinesEx( Rectangle( pos.x - 2, pos.y - 1, dim.x + 3, dim.y + 3 ), 3, BLACK );
-                DrawCircle( pos.x + dim.x - 6, pos.y + dim.y - 5, 2, Fade( BLACK, 0.5 ) );
+                Vector2 p( pos.x + ( j - startColumn ) * Tile::TILE_WIDTH, pos.y + ( i - startLine ) * Tile::TILE_WIDTH );
+                Vector2 d( Tile::TILE_WIDTH, Tile::TILE_WIDTH );
+                DrawRectangleLinesEx( Rectangle( p.x - 2, p.y - 1, d.x + 3, d.y + 3 ), 3, BLACK );
+                DrawCircle( p.x + d.x - 6, p.y + d.y - 5, 2, Fade( BLACK, 0.5 ) );
             }
         }
     }
@@ -368,11 +386,4 @@ void MapEditor::relocateTiles( std::vector<Tile*>& tiles ) {
 
     }
 
-}
-
-Vector2& MapEditor::getPos() {
-    return pos;
-}
-Vector2& MapEditor::getDim() {
-    return dim;
 }

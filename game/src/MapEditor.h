@@ -18,7 +18,6 @@ class GameWorld;
 class MapEditor : public virtual Drawable {
 
     Vector2 pos;
-    Vector2 dim;
     GameWorld *gw;
 
     int minLines;
@@ -32,6 +31,8 @@ class MapEditor : public virtual Drawable {
     int columns;
     int previousColumns;
     int pressedColumn;
+
+    Vector2 tileComposerDim;
 
     int startLine;
     int startColumn;
@@ -57,16 +58,13 @@ class MapEditor : public virtual Drawable {
 
 public:
 
-    MapEditor( Vector2 pos, Vector2 dim, GameWorld* gw );
+    MapEditor( Vector2 pos, GameWorld* gw );
     virtual ~MapEditor();
 
     void inputAndUpdate();
     void draw() override;
 
     void relocateTiles( std::vector<Tile*> &tiles );
-
-    Vector2& getPos();
-    Vector2& getDim();
 
 };
 

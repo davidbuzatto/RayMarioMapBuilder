@@ -1,5 +1,7 @@
 desenhar o índice das linhas e das colunas
-remover dimensão do editor de mapa? (ainda está usando largura e algura? acho que não!)
+    mostrar em qual coluna e linha o mouse está
+    usar efeito zebrado?
+
 preparar camadas (provavelmente 7)
 
 editar de fato os tiles
