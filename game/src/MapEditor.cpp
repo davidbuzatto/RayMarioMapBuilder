@@ -40,31 +40,25 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     
     firstSelectedTile( nullptr ),
     currentLayer( 1 ),
-    maxLayers( 2 ),
+    maxLayers( 7 ),
 
     guiContainerRect( Rectangle( pos.x + tileComposerDim.x + 40, pos.y, 50, 50 ) ),
 
-    colorPickerContainerRect( Rectangle( guiContainerRect.x + 10, guiContainerRect.y + 20, 245, 250 ) ),
+    previewTileWidth( 6 ),
+    layersPreviewRect( Rectangle( guiContainerRect.x + 10, guiContainerRect.y + 20, previewTileWidth* minColumns + 20 + 30, maxLayers* ( previewTileWidth* minLines + 10 ) + 10 ) ),
+
+    colorPickerContainerRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 245, 250 ) ),
     colorPickerRect( Rectangle( colorPickerContainerRect.x + 10, colorPickerContainerRect.y + 10, 200, 200 ) ),
     sliderAlphaRect( Rectangle( colorPickerRect.x, colorPickerRect.y + colorPickerRect.height + 10, colorPickerRect.width, 20 ) ),
 
-    spinnerCurrentLayerRect( Rectangle( guiContainerRect.x + 90, colorPickerContainerRect.y + colorPickerContainerRect.height + 10, 100, 20 ) ),
-    spinnerLinesRect( Rectangle( spinnerCurrentLayerRect.x, spinnerCurrentLayerRect.y + spinnerCurrentLayerRect.height + 10, 100, 20 ) ),
-    spinnerColumnsRect( Rectangle( spinnerCurrentLayerRect.x, spinnerLinesRect.y + spinnerLinesRect.height + 10, 100, 20 ) ),
-
-    previewTileWidth( 6 ),
-    layersPreviewRect( Rectangle( colorPickerContainerRect.x + colorPickerContainerRect.width + 10, colorPickerContainerRect.y, previewTileWidth * minColumns + 20, maxLayers * ( previewTileWidth * minLines + 10 ) + 10 ) ),
+    spinnerLinesRect( Rectangle( colorPickerContainerRect.x + 90, colorPickerContainerRect.y + colorPickerContainerRect.height + 10, 100, 20 ) ),
+    spinnerColumnsRect( Rectangle( spinnerLinesRect.x, spinnerLinesRect.y + spinnerLinesRect.height + 10, 100, 20 ) ),
 
     dummyTile( Vector2( 0, 0 ), BLACK, 1 ) {
 
-    /*for ( int i = 0; i < lines; i++ ) {
-        for ( int j = 0; j < columns; j++ ) {
-            tiles.push_back( new Tile( Vector2( j * Tile::TILE_WIDTH, i * Tile::TILE_WIDTH ), WHITE ) );
-        }
-    }*/
-
     for ( int k = 0; k < maxLayers; k++ ) {
         layers.emplace_back();
+        layersState.emplace_back( true );
         for ( int i = 0; i < lines; i++ ) {
             for ( int j = 0; j < columns; j++ ) {
                 layers[k].push_back( new Tile( Vector2( j * Tile::TILE_WIDTH, i * Tile::TILE_WIDTH ), WHITE, 0 ) );
@@ -75,10 +69,6 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
 }
 
 MapEditor::~MapEditor() {
-
-    /*for ( const auto *tile : tiles ) {
-        delete tile;
-    }*/
 
     for ( const auto &layer : layers ) {
         for ( const auto* tile : layer ) {
@@ -115,10 +105,8 @@ void MapEditor::selectTile( Vector2 &mousePos ) {
     computePressedLineAndColumn( mousePos, line, column );
 
     if ( isTilePositionValid( line, column ) ) {
-        //tiles[line * columns + column]->setSelected( true );
         layers[currentLayer - 1][line * columns + column]->setSelected( true );
         if ( firstSelectedTile == nullptr ) {
-            //firstSelectedTile = tiles[line * columns + column];
             firstSelectedTile = layers[currentLayer - 1][line * columns + column];
         }
     }
@@ -133,7 +121,6 @@ void MapEditor::deselectTile( Vector2 &mousePos ) {
     computePressedLineAndColumn( mousePos, line, column );
 
     if ( isTilePositionValid( line, column ) ) {
-        //Tile *tile = tiles[line * columns + column];
         Tile *tile = layers[currentLayer - 1][line * columns + column];
         tile->setSelected( false );
         if ( firstSelectedTile == tile ) {
@@ -144,7 +131,6 @@ void MapEditor::deselectTile( Vector2 &mousePos ) {
 }
 
 void MapEditor::deselectTiles() {
-    //for ( auto *tile : tiles ) {
     for ( auto *tile : layers[currentLayer - 1] ) {
         tile->setSelected( false );
     }
@@ -159,7 +145,6 @@ bool MapEditor::isTileSelected( Vector2 &mousePos ) const {
     computePressedLineAndColumn( mousePos, line, column );
 
     if ( isTilePositionValid( line, column ) ) {
-        //return tiles[line * columns + column]->isSelected();
         return layers[currentLayer - 1][line * columns + column]->isSelected();
     }
 
@@ -178,16 +163,19 @@ bool MapEditor::isMouseInsideEditor( const Vector2 &mousePos ) const {
            mousePos.y <= pos.y + minLines * Tile::TILE_WIDTH;
 }
 
-void MapEditor::drawLayerPreview( int x, int y, int tileWidth, const std::vector<Tile*>& tiles ) const {
+void MapEditor::drawLayerPreview( int x, int y, int tileWidth, bool active, const std::vector<Tile*>& tiles ) const {
 
     for ( int i = startLine; i < startLine + minLines; i++ ) {
         for ( int j = startColumn; j < startColumn + minColumns; j++ ) {
-            Tile *tile = tiles[i * columns + j];
-            DrawRectangle( x + (j-startColumn) * tileWidth, y + (i-startLine) * tileWidth, tileWidth, tileWidth, Fade( *(tile->getColor()), *(tile->getAlpha())) );
+            int p = i * columns + j;
+            if ( p < tiles.size() ) {
+                Tile *tile = tiles[p];
+                DrawRectangle( x + (j-startColumn) * tileWidth, y + (i-startLine) * tileWidth, tileWidth, tileWidth, Fade( *(tile->getColor()), *(tile->getAlpha())) );
+            }
         }
     }
 
-    DrawRectangleLines( x, y, minColumns * tileWidth, minLines * tileWidth, BLACK );
+    DrawRectangleLines( x, y, minColumns * tileWidth, minLines * tileWidth, active ? BLACK : LIGHTGRAY );
 
 }
 
@@ -196,9 +184,19 @@ void MapEditor::inputAndUpdate() {
     guiContainerRect.width = GetScreenWidth() - ( tileComposerDim.x + 60 );
     guiContainerRect.height = GetScreenHeight() - 20;
 
-    if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {
+    if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {    
 
         Vector2 mousePos = GetMousePosition();
+
+        for ( int i = maxLayers - 1; i >= 0; i-- ) {
+            Rectangle previewRect( layersPreviewRect.x + 40,
+                                   layersPreviewRect.y + 10 + ( maxLayers - i - 1 ) * ( previewTileWidth * minLines + 10 ),
+                                   previewTileWidth * minColumns,
+                                   previewTileWidth * minLines );
+            if ( CheckCollisionPointRec( mousePos, previewRect ) ) {
+                currentLayer = i + 1;
+            }
+        }
 
         if ( isMouseInsideEditor( mousePos ) ) {
 
@@ -232,7 +230,6 @@ void MapEditor::inputAndUpdate() {
 
         } else if ( CheckCollisionPointRec( mousePos, colorPickerContainerRect ) ) {
 
-            //for ( auto& tile : tiles ) {
             for ( auto& tile : layers[currentLayer - 1] ) {
                 if ( tile->isSelected() && firstSelectedTile != nullptr ) {
                     tile->setColor( *(firstSelectedTile->getColor()) );
@@ -311,16 +308,12 @@ void MapEditor::draw() {
     startLine = lines - minLines - viewOffsetLine;
     startColumn = viewOffsetColumn;
 
-    /*for ( int i = startLine; i < startLine + minLines; i++ ) {
-        for ( int j = startColumn; j < startColumn + minColumns; j++ ) {
-            tiles[i*columns + j]->draw( Vector2( pos.x + ( j - startColumn ) * Tile::TILE_WIDTH, pos.y + ( i - startLine ) * Tile::TILE_WIDTH ) );
-        }
-    }*/
-
     for ( int k = 0; k < maxLayers; k++ ) {
-        for ( int i = startLine; i < startLine + minLines; i++ ) {
-            for ( int j = startColumn; j < startColumn + minColumns; j++ ) {
-                layers[k][i * columns + j]->draw( Vector2( pos.x + ( j - startColumn ) * Tile::TILE_WIDTH, pos.y + ( i - startLine ) * Tile::TILE_WIDTH ) );
+        if ( layersState[k].visible ) {
+            for ( int i = startLine; i < startLine + minLines; i++ ) {
+                for ( int j = startColumn; j < startColumn + minColumns; j++ ) {
+                    layers[k][i * columns + j]->draw( Vector2( pos.x + ( j - startColumn ) * Tile::TILE_WIDTH, pos.y + ( i - startLine ) * Tile::TILE_WIDTH ) );
+                }
             }
         }
     }
@@ -358,6 +351,17 @@ void MapEditor::draw() {
     // GUI
     GuiGroupBox( guiContainerRect, "Options" );
 
+    GuiGroupBox( layersPreviewRect, "Layers" );
+
+    for ( int i = maxLayers - 1; i >= 0; i-- ) {
+        Vector2 pos( layersPreviewRect.x + 40,
+                     layersPreviewRect.y + 10 + ( maxLayers - i - 1 ) * ( previewTileWidth * minLines + 10 ) );
+        drawLayerPreview( pos.x, pos.y,
+                          previewTileWidth,
+                          i + 1 == currentLayer, layers[i] );
+        GuiCheckBox( Rectangle( pos.x - 30, pos.y + ( previewTileWidth * minLines ) / 2 - 10, 20, 20 ), nullptr, &( layersState[i].visible ) );
+    }
+
     GuiGroupBox( colorPickerContainerRect, "Tile Color" );
     if ( firstSelectedTile != nullptr ) {
         GuiColorPicker( colorPickerRect, nullptr, firstSelectedTile->getColor() );
@@ -367,13 +371,11 @@ void MapEditor::draw() {
         GuiColorBarAlpha( sliderAlphaRect, nullptr, dummyTile.getAlpha() );
     }
 
-    GuiSpinner( spinnerCurrentLayerRect, "Current Layer: ", &currentLayer, 1, maxLayers, false );
     GuiSpinner( spinnerLinesRect, "Lines: ", &lines, minLines, maxLines, false );
     GuiSpinner( spinnerColumnsRect, "Columns: ", &columns, minColumns, maxColumns, false );
 
     if ( lines != previousLines || columns != previousColumns ) {
         deselectTiles();
-        //relocateTiles( tiles );
         for ( int i = 0; i < maxLayers; i++ ) {
             relocateTiles( layers[i] );
         }
@@ -381,12 +383,6 @@ void MapEditor::draw() {
 
     previousLines = lines;
     previousColumns = columns;
-
-    GuiGroupBox( layersPreviewRect, "Layers" );
-
-    for ( int i = maxLayers - 1; i >= 0; i-- ) {
-        drawLayerPreview( layersPreviewRect.x + 10, layersPreviewRect.y + 10 + (maxLayers - i - 1) * ( previewTileWidth * minLines + 10 ), previewTileWidth, layers[i] );
-    }
 
 }
 

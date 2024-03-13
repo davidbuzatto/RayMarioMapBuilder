@@ -17,6 +17,10 @@ class GameWorld;
 
 class MapEditor : public virtual Drawable {
 
+    struct LayerState {
+        bool visible;
+    };
+
     Vector2 pos;
     GameWorld *gw;
 
@@ -47,16 +51,16 @@ class MapEditor : public virtual Drawable {
 
     Rectangle guiContainerRect;
 
+    int previewTileWidth;
+    Rectangle layersPreviewRect;
+    std::vector<LayerState> layersState;
+
     Rectangle colorPickerContainerRect;
     Rectangle colorPickerRect;
     Rectangle sliderAlphaRect;
 
-    Rectangle spinnerCurrentLayerRect;
     Rectangle spinnerLinesRect;
     Rectangle spinnerColumnsRect;
-
-    int previewTileWidth;
-    Rectangle layersPreviewRect;
 
     Tile dummyTile;
 
@@ -68,7 +72,7 @@ class MapEditor : public virtual Drawable {
     bool isTilePositionValid( int line, int column ) const;
     bool isMouseInsideEditor( const Vector2 &mousePos ) const;
 
-    void drawLayerPreview( int x, int y, int tileWidth, const std::vector<Tile*>& tiles ) const;
+    void drawLayerPreview( int x, int y, int tileWidth, bool active, const std::vector<Tile*>& tiles ) const;
 
 public:
 

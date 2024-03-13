@@ -1,15 +1,15 @@
 preparar camadas (provavelmente 7)
-   -> para cada camada, permitir esconder e selecionar a ativa a partir da lista de camadas
-   -> permitir aumentar e diminuir a quantidade de camadas?
+    -> permitir aumentar e diminuir a quantidade de camadas?
 
 editar de fato os tiles
     tipo do tile (sólido, sólido para inimigos, sólido por cima, não sólido, textura, visível)
     blocos (já implementados)
         bloco de mensagem
-
+	na escolha do tile, escolher o tile set e depois o item
+    escolha do bloco
+        mensagem (para cada bloco de mensagem)
+		
 configurações globais do mapa:
-    background
-    cor do fundo
-    tile set -> provavelmente não haverá, pois no editor terão todos os tipos disponíveis
-    tempo para terminar
-    mensagem (para cada bloco de mensagem)
+	cor do fundo
+    textura background
+	tempo para terminar
