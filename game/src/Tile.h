@@ -15,13 +15,14 @@ class Tile : public virtual Drawable {
     Vector2 pos;
     Vector2 dim;
     Color color;
+    float alpha;
     bool selected;
     
 public:
 
     static constexpr int TILE_WIDTH = 32;
 
-    Tile( Vector2 pos, Color color );
+    Tile( Vector2 pos, Color color, float alpha );
     virtual ~Tile();
 
     void inputAndUpdate();
@@ -39,6 +40,9 @@ public:
 
     Color* getColor();
     void setColor( Color color );
+
+    float* getAlpha();
+    void setAlpha( float alpha );
 
     bool isSelected() const;
     void setSelected( bool selected );

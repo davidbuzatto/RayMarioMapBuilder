@@ -1,8 +1,6 @@
-desenhar o índice das linhas e das colunas
-    mostrar em qual coluna e linha o mouse está
-    usar efeito zebrado?
-
 preparar camadas (provavelmente 7)
+   -> para cada camada, permitir esconder e selecionar a ativa a partir da lista de camadas
+   -> permitir aumentar e diminuir a quantidade de camadas?
 
 editar de fato os tiles
     tipo do tile (sólido, sólido para inimigos, sólido por cima, não sólido, textura, visível)

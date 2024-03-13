@@ -39,14 +39,26 @@ class MapEditor : public virtual Drawable {
     int viewOffsetLine;
     int viewOffsetColumn;
 
-    std::vector<Tile*> tiles;
+    //std::vector<Tile*> tiles;
+    std::vector<std::vector<Tile*>> layers;
     Tile *firstSelectedTile;
+    int currentLayer;
+    int maxLayers;
 
-    Rectangle spinnerLinesRect;
-    Rectangle spinnerColumnsRect;
+    Rectangle guiContainerRect;
 
     Rectangle colorPickerContainerRect;
     Rectangle colorPickerRect;
+    Rectangle sliderAlphaRect;
+
+    Rectangle spinnerCurrentLayerRect;
+    Rectangle spinnerLinesRect;
+    Rectangle spinnerColumnsRect;
+
+    int previewTileWidth;
+    Rectangle layersPreviewRect;
+
+    Tile dummyTile;
 
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );
@@ -56,6 +68,8 @@ class MapEditor : public virtual Drawable {
     bool isTilePositionValid( int line, int column ) const;
     bool isMouseInsideEditor( const Vector2 &mousePos ) const;
 
+    void drawLayerPreview( int x, int y, int tileWidth, const std::vector<Tile*>& tiles ) const;
+
 public:
 
     MapEditor( Vector2 pos, GameWorld* gw );
@@ -64,7 +78,7 @@ public:
     void inputAndUpdate();
     void draw() override;
 
-    void relocateTiles( std::vector<Tile*> &tiles );
+    void relocateTiles( std::vector<Tile*> &tiles ) const;
 
 };
 

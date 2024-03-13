@@ -11,11 +11,12 @@
 #include "Tile.h"
 #include "raylib.h"
 
-Tile::Tile( Vector2 pos, Color color )
+Tile::Tile( Vector2 pos, Color color, float alpha )
     :
     pos( pos ),
     dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
     color( color ),
+    alpha( alpha ),
     selected( false ) {
 }
 
@@ -30,7 +31,7 @@ void Tile::draw() {
 }
 
 void Tile::draw( Vector2 drawPos ) {
-    DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, color );
+    DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, Fade( color, alpha ) );
 }
 
 Vector2& Tile::getPos() {
@@ -67,6 +68,14 @@ Color* Tile::getColor() {
 
 void Tile::setColor( Color color ) {
     this->color = color;
+}
+
+float* Tile::getAlpha() {
+    return &alpha;
+}
+
+void Tile::setAlpha( float alpha ) {
+    this->alpha = alpha;
 }
 
 bool Tile::isSelected() const {
