@@ -8,8 +8,3 @@ editar de fato os tiles
 	na escolha do tile, escolher o tile set e depois o item
     escolha do bloco
         mensagem (para cada bloco de mensagem)
-		
-configurações globais do mapa:
-	cor do fundo
-    textura background
-	tempo para terminar

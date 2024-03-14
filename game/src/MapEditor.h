@@ -55,14 +55,24 @@ class MapEditor : public virtual Drawable {
     Rectangle layersPreviewRect;
     std::vector<LayerState> layersState;
 
+    Rectangle mapPropertiesRect;
+    Rectangle spinnerLinesRect;
+    Rectangle spinnerColumnsRect;
+    Rectangle labelBackgroundColorRect;
+    Rectangle colorPickerBackgroundColorRect;
+    Rectangle spinnerBackgroundTextureIdRect;
+    Rectangle spinnerTimeToFinishRect;
+
     Rectangle colorPickerContainerRect;
     Rectangle colorPickerRect;
     Rectangle sliderAlphaRect;
 
-    Rectangle spinnerLinesRect;
-    Rectangle spinnerColumnsRect;
-
     Tile dummyTile;
+
+    // map properties
+    Color backgroundColor;
+    int backgroundTextureId;
+    int timeToFinish;
 
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );

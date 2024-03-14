@@ -7,12 +7,12 @@
  */
 #include "GameWorld.h"
 #include "MapEditor.h"
+#include "ResourceManager.h"
 #include "Tile.h"
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #undef RAYGUI_IMPLEMENTATION
-
 
 MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     :
@@ -47,14 +47,23 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     previewTileWidth( 6 ),
     layersPreviewRect( Rectangle( guiContainerRect.x + 10, guiContainerRect.y + 20, previewTileWidth* minColumns + 20 + 30, maxLayers* ( previewTileWidth* minLines + 10 ) + 10 ) ),
 
-    colorPickerContainerRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 245, 250 ) ),
+    mapPropertiesRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 260, 240 )  ),
+    spinnerLinesRect( Rectangle( mapPropertiesRect.x + 125, mapPropertiesRect.y + 10, 100, 20 ) ),
+    spinnerColumnsRect( Rectangle( spinnerLinesRect.x, spinnerLinesRect.y + spinnerLinesRect.height + 10, 100, 20 ) ),
+    labelBackgroundColorRect( Rectangle( spinnerColumnsRect.x - 100, spinnerColumnsRect.y + spinnerColumnsRect.height + 50, 100, 20 ) ),
+    colorPickerBackgroundColorRect( Rectangle( spinnerColumnsRect.x, spinnerColumnsRect.y + spinnerColumnsRect.height + 10, 100, 100 )  ),
+    spinnerBackgroundTextureIdRect( Rectangle( colorPickerBackgroundColorRect.x, colorPickerBackgroundColorRect.y + colorPickerBackgroundColorRect.height + 10, 100, 20 ) ),
+    spinnerTimeToFinishRect( Rectangle( spinnerBackgroundTextureIdRect.x, spinnerBackgroundTextureIdRect.y + spinnerBackgroundTextureIdRect.height + 10, 100, 20 ) ),
+
+    colorPickerContainerRect( Rectangle( mapPropertiesRect.x, mapPropertiesRect.y + mapPropertiesRect.height + 10, 245, 250 ) ),
     colorPickerRect( Rectangle( colorPickerContainerRect.x + 10, colorPickerContainerRect.y + 10, 200, 200 ) ),
     sliderAlphaRect( Rectangle( colorPickerRect.x, colorPickerRect.y + colorPickerRect.height + 10, colorPickerRect.width, 20 ) ),
 
-    spinnerLinesRect( Rectangle( colorPickerContainerRect.x + 90, colorPickerContainerRect.y + colorPickerContainerRect.height + 10, 100, 20 ) ),
-    spinnerColumnsRect( Rectangle( spinnerLinesRect.x, spinnerLinesRect.y + spinnerLinesRect.height + 10, 100, 20 ) ),
+    dummyTile( Vector2( 0, 0 ), BLACK, 1 ),
 
-    dummyTile( Vector2( 0, 0 ), BLACK, 1 ) {
+    backgroundColor( WHITE ),
+    backgroundTextureId( 1 ),
+    timeToFinish( 200 ) {
 
     for ( int k = 0; k < maxLayers; k++ ) {
         layers.emplace_back();
@@ -305,9 +314,31 @@ void MapEditor::inputAndUpdate() {
 
 void MapEditor::draw() {
 
+    std::map<std::string, Texture2D> &textures = ResourceManager::getTextures();
+
     startLine = lines - minLines - viewOffsetLine;
     startColumn = viewOffsetColumn;
 
+    // background
+    DrawRectangle( pos.x, pos.y, minColumns * Tile::TILE_WIDTH, minLines * Tile::TILE_WIDTH, backgroundColor );
+    const Texture2D backgroundTexture = textures[TextFormat( "background%d", backgroundTextureId )];
+    const int repeats = ( columns * Tile::TILE_WIDTH ) / backgroundTexture.width + 1;
+
+    for ( int i = 0; i < repeats; i++ ) {
+        DrawTexture(
+            backgroundTexture,
+            pos.x + backgroundTexture.width * i - startColumn * Tile::TILE_WIDTH,
+            pos.y - backgroundTexture.height + ( lines - startLine ) * Tile::TILE_WIDTH,
+            WHITE
+        );
+    }
+
+    DrawRectangle( 0, 0, GetScreenWidth(), pos.y, WHITE );
+    DrawRectangle( 0, pos.y + minLines * Tile::TILE_WIDTH, GetScreenWidth(), GetScreenHeight(), WHITE );
+    DrawRectangle( 0, 0, pos.x, GetScreenHeight(), WHITE );
+    DrawRectangle( pos.x + minColumns * Tile::TILE_WIDTH, 0, GetScreenWidth(), GetScreenHeight(), WHITE );
+
+    // tiles
     for ( int k = 0; k < maxLayers; k++ ) {
         if ( layersState[k].visible ) {
             for ( int i = startLine; i < startLine + minLines; i++ ) {
@@ -318,9 +349,11 @@ void MapEditor::draw() {
         }
     }
 
+    // rulers background
     DrawRectangle( pos.x + tileComposerDim.x, pos.y, Tile::TILE_WIDTH, minLines * Tile::TILE_WIDTH + 1, Fade( LIGHTGRAY, 0.5 ) );
     DrawRectangle( pos.x-1, pos.y + tileComposerDim.y, minColumns * Tile::TILE_WIDTH + 1, Tile::TILE_WIDTH, Fade( LIGHTGRAY, 0.5 ) );
 
+    // grid and rulers
     for ( int i = 0; i <= minLines + 1; i++ ) {
         DrawLine( pos.x-1, pos.y + i * Tile::TILE_WIDTH, pos.x + minColumns * Tile::TILE_WIDTH, pos.y + i * Tile::TILE_WIDTH, BLACK );
         if ( i < minLines ) {
@@ -337,6 +370,7 @@ void MapEditor::draw() {
         }
     }
 
+    // selected tiles
     for ( int i = startLine; i < startLine + minLines; i++ ) {
         for ( int j = startColumn; j < startColumn + minColumns; j++ ) {
             if ( layers[currentLayer - 1][i * columns + j]->isSelected() ) {
@@ -362,6 +396,15 @@ void MapEditor::draw() {
         GuiCheckBox( Rectangle( pos.x - 30, pos.y + ( previewTileWidth * minLines ) / 2 - 10, 20, 20 ), nullptr, &( layersState[i].visible ) );
     }
 
+    GuiGroupBox( mapPropertiesRect, "Map Properties" );
+    GuiSpinner( spinnerLinesRect, "Lines: ", &lines, minLines, maxLines, false );
+    GuiSpinner( spinnerColumnsRect, "Columns: ", &columns, minColumns, maxColumns, false );
+
+    GuiLabel( labelBackgroundColorRect, "Background Color: " );
+    GuiColorPicker( colorPickerBackgroundColorRect, nullptr, &backgroundColor );
+    GuiSpinner( spinnerBackgroundTextureIdRect, "Background Texture: ", &backgroundTextureId, 1, 10, false );
+    GuiSpinner( spinnerTimeToFinishRect, "Time to Finish: ", &timeToFinish, 1, 2000, true );
+
     GuiGroupBox( colorPickerContainerRect, "Tile Color" );
     if ( firstSelectedTile != nullptr ) {
         GuiColorPicker( colorPickerRect, nullptr, firstSelectedTile->getColor() );
@@ -370,9 +413,6 @@ void MapEditor::draw() {
         GuiColorPicker( colorPickerRect, nullptr, dummyTile.getColor() );
         GuiColorBarAlpha( sliderAlphaRect, nullptr, dummyTile.getAlpha() );
     }
-
-    GuiSpinner( spinnerLinesRect, "Lines: ", &lines, minLines, maxLines, false );
-    GuiSpinner( spinnerColumnsRect, "Columns: ", &columns, minColumns, maxColumns, false );
 
     if ( lines != previousLines || columns != previousColumns ) {
         deselectTiles();

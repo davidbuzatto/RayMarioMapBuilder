@@ -7,10 +7,11 @@
  */
 #include <iostream>
 #include <string>
-
 #include "GameWorld.h"
 #include "ResourceManager.h"
 #include "raylib.h"
+
+bool ResourceManager::loadFromRRES = false;
 
 GameWorld::GameWorld()
     :
@@ -36,13 +37,9 @@ void GameWorld::draw() {
 }
 
 void GameWorld::loadResources() {
-    ResourceManager::loadTextures();
-    ResourceManager::loadSounds();
-    ResourceManager::loadMusics();
+    ResourceManager::loadResources();
 }
 
 void GameWorld::unloadResources() {
-    ResourceManager::unloadTextures();
-    ResourceManager::unloadSounds();
-    ResourceManager::unloadMusics();
+    ResourceManager::unloadResources();
 }
