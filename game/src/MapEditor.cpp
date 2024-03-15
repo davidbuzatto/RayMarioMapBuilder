@@ -50,15 +50,17 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
 
     toogleGroupInsertRect( Rectangle( pos.x, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 44, 44 ) ),
     checkShowGridRect( Rectangle( pos.x + minColumns * Tile::TILE_WIDTH - 80, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 20, 20 ) ),
+    checkPlayMusicRect( Rectangle( checkShowGridRect.x, checkShowGridRect.y + checkShowGridRect.height + 10, 20, 20 ) ),
     activeInsertOption( 0 ),
 
-    mapPropertiesRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 260, 240 )  ),
+    mapPropertiesRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 260, 270 )  ),
     spinnerLinesRect( Rectangle( mapPropertiesRect.x + 125, mapPropertiesRect.y + 10, 100, 20 ) ),
     spinnerColumnsRect( Rectangle( spinnerLinesRect.x, spinnerLinesRect.y + spinnerLinesRect.height + 10, 100, 20 ) ),
     labelBackgroundColorRect( Rectangle( spinnerColumnsRect.x - 100, spinnerColumnsRect.y + spinnerColumnsRect.height + 50, 100, 20 ) ),
     colorPickerBackgroundColorRect( Rectangle( spinnerColumnsRect.x, spinnerColumnsRect.y + spinnerColumnsRect.height + 10, 100, 100 )  ),
     spinnerBackgroundTextureIdRect( Rectangle( colorPickerBackgroundColorRect.x, colorPickerBackgroundColorRect.y + colorPickerBackgroundColorRect.height + 10, 100, 20 ) ),
-    spinnerTimeToFinishRect( Rectangle( spinnerBackgroundTextureIdRect.x, spinnerBackgroundTextureIdRect.y + spinnerBackgroundTextureIdRect.height + 10, 100, 20 ) ),
+    spinnerMusicIdRect( Rectangle( spinnerBackgroundTextureIdRect.x, spinnerBackgroundTextureIdRect.y + spinnerBackgroundTextureIdRect.height + 10, 100, 20 ) ),
+    spinnerTimeToFinishRect( Rectangle( spinnerMusicIdRect.x, spinnerMusicIdRect.y + spinnerMusicIdRect.height + 10, 100, 20 ) ),
 
     componentPropertiesRect( Rectangle( mapPropertiesRect.x, mapPropertiesRect.y + mapPropertiesRect.height + 10, 245, 250 ) ),
 
@@ -70,8 +72,11 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
 
     backgroundColor( WHITE ),
     backgroundTextureId( 1 ),
+    musicId( 1 ),
     timeToFinish( 200 ),
-    showGrid( true ) {
+    showGrid( true ),
+    playMusic( false ),
+    previousSelectedMusicId( musicId ) {
 
     for ( int k = 0; k < maxLayers; k++ ) {
         layers.emplace_back();
@@ -323,6 +328,33 @@ void MapEditor::inputAndUpdate() {
         viewOffsetColumn = columns - minColumns;
     }
 
+    std::map<std::string, Music>& musics = ResourceManager::getMusics();
+    Music currentSelectedMusic = musics[TextFormat( "music%d", musicId )];
+    Music previousSelectedMusic = musics[TextFormat( "music%d", previousSelectedMusicId )];
+
+    if ( playMusic ) {
+        if ( musicId != previousSelectedMusicId ) {
+            StopMusicStream( previousSelectedMusic );
+            PlayMusicStream( currentSelectedMusic );
+        } else {
+            if ( IsMusicStreamPlaying( currentSelectedMusic ) ) {
+                UpdateMusicStream( currentSelectedMusic );
+            } else {
+                PlayMusicStream( currentSelectedMusic );
+            }
+        }
+    } else {
+        if ( IsMusicStreamPlaying( previousSelectedMusic ) ) {
+            StopMusicStream( previousSelectedMusic );
+        }
+        if ( IsMusicStreamPlaying( currentSelectedMusic ) ) {
+            StopMusicStream( currentSelectedMusic );
+        }
+    }
+
+    previousSelectedMusicId = musicId;
+
+
 }
 
 void MapEditor::draw() {
@@ -401,6 +433,8 @@ void MapEditor::draw() {
 
     // GUI
     GuiCheckBox( checkShowGridRect, "Show Grid", &showGrid );
+    GuiCheckBox( checkPlayMusicRect, "Play Music", &playMusic );
+
     GuiToggleGroup( toogleGroupInsertRect, ";;;;", &activeInsertOption );
     DrawTexture( textures["B1"], toogleGroupInsertRect.x + 6, toogleGroupInsertRect.y + 6, WHITE );
     DrawTexture( textures["blockQuestion0"], toogleGroupInsertRect.x + toogleGroupInsertRect.width + 8, toogleGroupInsertRect.y + 6, WHITE );
@@ -427,6 +461,7 @@ void MapEditor::draw() {
     GuiLabel( labelBackgroundColorRect, "Background Color: " );
     GuiColorPicker( colorPickerBackgroundColorRect, nullptr, &backgroundColor );
     GuiSpinner( spinnerBackgroundTextureIdRect, "Background Texture: ", &backgroundTextureId, 1, 10, false );
+    GuiSpinner( spinnerMusicIdRect, "Music: ", &musicId, 1, 9, false );
     GuiSpinner( spinnerTimeToFinishRect, "Time to Finish: ", &timeToFinish, 1, 2000, true );
 
     if ( activeInsertOption == COMPONENT_INSERTION_TYPE_TILES ) {

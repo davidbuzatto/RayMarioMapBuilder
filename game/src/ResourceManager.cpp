@@ -776,7 +776,7 @@ void ResourceManager::loadMusics() {
 
     if ( musics.empty() ) {
 
-        /*if ( loadFromRRES ) {
+        if ( loadFromRRES ) {
             loadMusicFromResource( "resources/musics/courseClear.mp3", "courseClear" );
             loadMusicFromResource( "resources/musics/ending.mp3", "ending" );
             loadMusicFromResource( "resources/musics/gameOver.mp3", "gameOver" );
@@ -808,7 +808,7 @@ void ResourceManager::loadMusics() {
             musics["music9"] = LoadMusicStream( "resources/musics/music9.mp3" );
             musics["playerDown"] = LoadMusicStream( "resources/musics/playerDown.mp3" );
             musics["title"] = LoadMusicStream( "resources/musics/title.mp3" );
-        }*/
+        }
 
     }
 

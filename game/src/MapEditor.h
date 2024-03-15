@@ -57,6 +57,7 @@ class MapEditor : public virtual Drawable {
 
     Rectangle toogleGroupInsertRect;
     Rectangle checkShowGridRect;
+    Rectangle checkPlayMusicRect;
     int activeInsertOption;
 
     Rectangle mapPropertiesRect;
@@ -65,6 +66,7 @@ class MapEditor : public virtual Drawable {
     Rectangle labelBackgroundColorRect;
     Rectangle colorPickerBackgroundColorRect;
     Rectangle spinnerBackgroundTextureIdRect;
+    Rectangle spinnerMusicIdRect;
     Rectangle spinnerTimeToFinishRect;
 
     Rectangle componentPropertiesRect;
@@ -78,8 +80,11 @@ class MapEditor : public virtual Drawable {
     // map properties
     Color backgroundColor;
     int backgroundTextureId;
+    int musicId;
     int timeToFinish;
     bool showGrid;
+    bool playMusic;
+    int previousSelectedMusicId;
 
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );
