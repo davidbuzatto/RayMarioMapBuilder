@@ -280,6 +280,7 @@
     <ClCompile Include="..\game\src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\game\src\ComponentInsertionType.h" />
     <ClInclude Include="..\game\src\Drawable.h" />
     <ClInclude Include="..\game\src\GameWindow.h" />
     <ClInclude Include="..\game\src\GameWorld.h" />

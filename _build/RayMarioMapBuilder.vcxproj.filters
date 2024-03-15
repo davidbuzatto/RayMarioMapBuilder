@@ -77,5 +77,8 @@
     <ClInclude Include="..\game\src\Tile.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\game\src\ComponentInsertionType.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

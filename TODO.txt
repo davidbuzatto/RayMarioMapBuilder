@@ -1,6 +1,3 @@
-preparar camadas (provavelmente 7)
-    -> permitir aumentar e diminuir a quantidade de camadas?
-
 editar de fato os tiles
     tipo do tile (sólido, sólido para inimigos, sólido por cima, não sólido, textura, visível)
     blocos (já implementados)
@@ -8,3 +5,18 @@ editar de fato os tiles
 	na escolha do tile, escolher o tile set e depois o item
     escolha do bloco
         mensagem (para cada bloco de mensagem)
+        
+        
+        
+    Colored/Textured
+    
+    Tiles ou Blocks
+    
+    Tiles podem ser:
+        sólido, sólido para inimigos, sólido por cima, não sólido
+        visível
+        
+    Tiles com cor usam a cor. Tiles com textura substituem a cor.
+    
+    
+    Ferramentas para inserção: tiles, blocos, inimigos e mario

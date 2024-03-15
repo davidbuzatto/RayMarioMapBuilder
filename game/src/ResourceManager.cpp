@@ -103,7 +103,7 @@ void ResourceManager::loadTextures() {
         flowerMarioReplacePallete.push_back( GetColor( 0xb02860ff ) );
         flowerMarioReplacePallete.push_back( GetColor( 0xd8d8a8ff ) );
         flowerMarioReplacePallete.push_back( GetColor( 0xf87068ff ) );
-        flowerMarioReplacePallete.push_back( GetColor( 0xf87018ff ) );
+        flowerMarioReplacePallete.push_back( GetColor( 0xf87018ff ) );*/
 
         // load textures...
 
@@ -118,7 +118,7 @@ void ResourceManager::loadTextures() {
         textures["smallMario0L"] = texture2DFlipHorizontal( textures["smallMario0R"] );
         textures["smallMario1L"] = texture2DFlipHorizontal( textures["smallMario1R"] );
 
-        if ( loadFromRRES ) {
+        /*if ( loadFromRRES ) {
             loadTextureFromResource( "resources/images/sprites/mario/SmallMarioRunning_0.png", "smallMario0RuR" );
             loadTextureFromResource( "resources/images/sprites/mario/SmallMarioRunning_1.png", "smallMario1RuR" );
         } else {
@@ -322,7 +322,7 @@ void ResourceManager::loadTextures() {
         textures["fireball0L"] = texture2DFlipHorizontal( textures["fireball0R"] );
         textures["fireball1L"] = texture2DFlipHorizontal( textures["fireball1R"] );
         textures["fireball2L"] = texture2DFlipHorizontal( textures["fireball2R"] );
-        textures["fireball3L"] = texture2DFlipHorizontal( textures["fireball3R"] );
+        textures["fireball3L"] = texture2DFlipHorizontal( textures["fireball3R"] );*/
 
         // tiles
         for ( int i = 1; i <= 4; i++ ) {
@@ -382,7 +382,7 @@ void ResourceManager::loadTextures() {
             textures["blockQuestion3"] = LoadTexture( "resources/images/sprites/blocks/Question_3.png" );
             textures["blockStone"] = LoadTexture( "resources/images/sprites/blocks/Stone_0.png" );
             textures["blockWood"] = LoadTexture( "resources/images/sprites/blocks/Wood_0.png" );
-        }*/
+        }
 
 
         // backgrounds
@@ -410,7 +410,6 @@ void ResourceManager::loadTextures() {
             textures["background10"] = LoadTexture( "resources/images/backgrounds/background10.png" );
         }
 
-        /*
         // items
         if ( loadFromRRES ) {
             loadTextureFromResource( "resources/images/sprites/items/Coin_0.png", "coin0" );
@@ -445,7 +444,7 @@ void ResourceManager::loadTextures() {
             textures["yoshiCoin2"] = LoadTexture( "resources/images/sprites/items/YoshiCoin_2.png" );
             textures["yoshiCoin3"] = LoadTexture( "resources/images/sprites/items/YoshiCoin_3.png" );
         }
-
+        /*
         // baddies
         if ( loadFromRRES ) {
             loadTextureFromResource( "resources/images/sprites/baddies/BlueKoopaTroopa_0.png", "blueKoopaTroopa0R" );
@@ -498,7 +497,7 @@ void ResourceManager::loadTextures() {
         textures["flyingGoomba0L"] = texture2DFlipHorizontal( textures["flyingGoomba0R"] );
         textures["flyingGoomba1L"] = texture2DFlipHorizontal( textures["flyingGoomba1R"] );
         textures["flyingGoomba2L"] = texture2DFlipHorizontal( textures["flyingGoomba2R"] );
-        textures["flyingGoomba3L"] = texture2DFlipHorizontal( textures["flyingGoomba3R"] );
+        textures["flyingGoomba3L"] = texture2DFlipHorizontal( textures["flyingGoomba3R"] );*/
 
         if ( loadFromRRES ) {
             loadTextureFromResource( "resources/images/sprites/baddies/Goomba_0.png", "goomba0R" );
@@ -510,7 +509,7 @@ void ResourceManager::loadTextures() {
         textures["goomba0L"] = texture2DFlipHorizontal( textures["goomba0R"] );
         textures["goomba1L"] = texture2DFlipHorizontal( textures["goomba1R"] );
 
-        if ( loadFromRRES ) {
+        /*if ( loadFromRRES ) {
             loadTextureFromResource( "resources/images/sprites/baddies/GreenKoopaTroopa_0.png", "greenKoopaTroopa0R" );
             loadTextureFromResource( "resources/images/sprites/baddies/GreenKoopaTroopa_1.png", "greenKoopaTroopa1R" );
         } else {

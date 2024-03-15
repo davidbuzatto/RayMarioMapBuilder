@@ -11,6 +11,7 @@
 #include "Tile.h"
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
+#include "ComponentInsertionType.h"
 #include "raygui.h"
 #undef RAYGUI_IMPLEMENTATION
 
@@ -47,6 +48,10 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     previewTileWidth( 6 ),
     layersPreviewRect( Rectangle( guiContainerRect.x + 10, guiContainerRect.y + 20, previewTileWidth* minColumns + 20 + 30, maxLayers* ( previewTileWidth* minLines + 10 ) + 10 ) ),
 
+    toogleGroupInsertRect( Rectangle( pos.x, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 44, 44 ) ),
+    checkShowGridRect( Rectangle( pos.x + minColumns * Tile::TILE_WIDTH - 80, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 20, 20 ) ),
+    activeInsertOption( 0 ),
+
     mapPropertiesRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 260, 240 )  ),
     spinnerLinesRect( Rectangle( mapPropertiesRect.x + 125, mapPropertiesRect.y + 10, 100, 20 ) ),
     spinnerColumnsRect( Rectangle( spinnerLinesRect.x, spinnerLinesRect.y + spinnerLinesRect.height + 10, 100, 20 ) ),
@@ -55,15 +60,18 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     spinnerBackgroundTextureIdRect( Rectangle( colorPickerBackgroundColorRect.x, colorPickerBackgroundColorRect.y + colorPickerBackgroundColorRect.height + 10, 100, 20 ) ),
     spinnerTimeToFinishRect( Rectangle( spinnerBackgroundTextureIdRect.x, spinnerBackgroundTextureIdRect.y + spinnerBackgroundTextureIdRect.height + 10, 100, 20 ) ),
 
-    colorPickerContainerRect( Rectangle( mapPropertiesRect.x, mapPropertiesRect.y + mapPropertiesRect.height + 10, 245, 250 ) ),
-    colorPickerRect( Rectangle( colorPickerContainerRect.x + 10, colorPickerContainerRect.y + 10, 200, 200 ) ),
-    sliderAlphaRect( Rectangle( colorPickerRect.x, colorPickerRect.y + colorPickerRect.height + 10, colorPickerRect.width, 20 ) ),
+    componentPropertiesRect( Rectangle( mapPropertiesRect.x, mapPropertiesRect.y + mapPropertiesRect.height + 10, 245, 250 ) ),
+
+    colorPickerTileContainerRect( Rectangle( componentPropertiesRect.x + 10, componentPropertiesRect.y + 20, 145, 150 ) ),
+    colorPickerTileRect( Rectangle( colorPickerTileContainerRect.x + 10, colorPickerTileContainerRect.y + 10, 100, 100 ) ),
+    sliderAlphaTileRect( Rectangle( colorPickerTileRect.x, colorPickerTileRect.y + colorPickerTileRect.height + 10, colorPickerTileRect.width, 20 ) ),
 
     dummyTile( Vector2( 0, 0 ), BLACK, 1 ),
 
     backgroundColor( WHITE ),
     backgroundTextureId( 1 ),
-    timeToFinish( 200 ) {
+    timeToFinish( 200 ),
+    showGrid( true ) {
 
     for ( int k = 0; k < maxLayers; k++ ) {
         layers.emplace_back();
@@ -193,6 +201,11 @@ void MapEditor::inputAndUpdate() {
     guiContainerRect.width = GetScreenWidth() - ( tileComposerDim.x + 60 );
     guiContainerRect.height = GetScreenHeight() - 20;
 
+    mapPropertiesRect.width = guiContainerRect.width - layersPreviewRect.width - 30;
+
+    componentPropertiesRect.width = guiContainerRect.width - layersPreviewRect.width - 30;
+    componentPropertiesRect.height = guiContainerRect.height - mapPropertiesRect.height - 40;
+
     if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {    
 
         Vector2 mousePos = GetMousePosition();
@@ -217,7 +230,7 @@ void MapEditor::inputAndUpdate() {
                 selectTile( mousePos );
             }
             
-        } else if ( !CheckCollisionPointRec( mousePos, colorPickerContainerRect ) ) {
+        } else if ( !CheckCollisionPointRec( mousePos, colorPickerTileContainerRect ) ) {
             deselectTiles();
         }
 
@@ -237,7 +250,7 @@ void MapEditor::inputAndUpdate() {
                 selectTile( mousePos );
             }
 
-        } else if ( CheckCollisionPointRec( mousePos, colorPickerContainerRect ) ) {
+        } else if ( CheckCollisionPointRec( mousePos, colorPickerTileContainerRect ) ) {
 
             for ( auto& tile : layers[currentLayer - 1] ) {
                 if ( tile->isSelected() && firstSelectedTile != nullptr ) {
@@ -355,7 +368,9 @@ void MapEditor::draw() {
 
     // grid and rulers
     for ( int i = 0; i <= minLines + 1; i++ ) {
-        DrawLine( pos.x-1, pos.y + i * Tile::TILE_WIDTH, pos.x + minColumns * Tile::TILE_WIDTH, pos.y + i * Tile::TILE_WIDTH, BLACK );
+        if ( showGrid || i == 0 || ( i >= minLines ) ) {
+            DrawLine( pos.x - 1, pos.y + i * Tile::TILE_WIDTH, pos.x + minColumns * Tile::TILE_WIDTH, pos.y + i * Tile::TILE_WIDTH, BLACK );
+        }
         if ( i < minLines ) {
             const char* t = TextFormat( "%d", startLine + i + 1 );
             DrawText( t, pos.x + tileComposerDim.x + Tile::TILE_WIDTH / 2 - MeasureText( t, 10 ) / 2, pos.y + i * Tile::TILE_WIDTH + 12, 10, BLACK );
@@ -363,7 +378,9 @@ void MapEditor::draw() {
     }
 
     for ( int i = 0; i <= minColumns + 1; i++ ) {
-        DrawLine( pos.x + i * Tile::TILE_WIDTH, pos.y, pos.x + i * Tile::TILE_WIDTH, pos.y + minLines * Tile::TILE_WIDTH + 1, BLACK );
+        if ( showGrid || i == 0 || ( i >= minColumns ) ) {
+            DrawLine( pos.x + i * Tile::TILE_WIDTH, pos.y, pos.x + i * Tile::TILE_WIDTH, pos.y + minLines * Tile::TILE_WIDTH + 1, BLACK );
+        }
         if ( i < minColumns ) {
             const char* t = TextFormat( "%d", startColumn + i + 1 );
             DrawText( t, pos.x + i * Tile::TILE_WIDTH + Tile::TILE_WIDTH / 2 - MeasureText( t, 10 ) / 2, pos.y + tileComposerDim.y + 12, 10, BLACK );
@@ -383,8 +400,15 @@ void MapEditor::draw() {
     }
 
     // GUI
-    GuiGroupBox( guiContainerRect, "Options" );
+    GuiCheckBox( checkShowGridRect, "Show Grid", &showGrid );
+    GuiToggleGroup( toogleGroupInsertRect, ";;;;", &activeInsertOption );
+    DrawTexture( textures["B1"], toogleGroupInsertRect.x + 6, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["blockQuestion0"], toogleGroupInsertRect.x + toogleGroupInsertRect.width + 8, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["coin2"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 2 + 14, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["goomba0R"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 3 + 12, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["smallMario0R"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 4 + 12, toogleGroupInsertRect.y + 2, WHITE );
 
+    GuiGroupBox( guiContainerRect, "Options" );
     GuiGroupBox( layersPreviewRect, "Layers" );
 
     for ( int i = maxLayers - 1; i >= 0; i-- ) {
@@ -405,13 +429,22 @@ void MapEditor::draw() {
     GuiSpinner( spinnerBackgroundTextureIdRect, "Background Texture: ", &backgroundTextureId, 1, 10, false );
     GuiSpinner( spinnerTimeToFinishRect, "Time to Finish: ", &timeToFinish, 1, 2000, true );
 
-    GuiGroupBox( colorPickerContainerRect, "Tile Color" );
-    if ( firstSelectedTile != nullptr ) {
-        GuiColorPicker( colorPickerRect, nullptr, firstSelectedTile->getColor() );
-        GuiColorBarAlpha( sliderAlphaRect, nullptr, firstSelectedTile->getAlpha() );
-    } else {
-        GuiColorPicker( colorPickerRect, nullptr, dummyTile.getColor() );
-        GuiColorBarAlpha( sliderAlphaRect, nullptr, dummyTile.getAlpha() );
+    if ( activeInsertOption == COMPONENT_INSERTION_TYPE_TILES ) {
+        GuiGroupBox( componentPropertiesRect, "Tiles" );
+        GuiGroupBox( colorPickerTileContainerRect, "Color" );
+        if ( firstSelectedTile != nullptr ) {
+            GuiColorPicker( colorPickerTileRect, nullptr, firstSelectedTile->getColor() );
+            GuiColorBarAlpha( sliderAlphaTileRect, nullptr, firstSelectedTile->getAlpha() );
+        } else {
+            GuiColorPicker( colorPickerTileRect, nullptr, dummyTile.getColor() );
+            GuiColorBarAlpha( sliderAlphaTileRect, nullptr, dummyTile.getAlpha() );
+        }
+    } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_BLOCKS ) {
+        GuiGroupBox( componentPropertiesRect, "Blocks" );
+    } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_ITEMS ) {
+        GuiGroupBox( componentPropertiesRect, "Items" );
+    } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_BADDIES ) {
+        GuiGroupBox( componentPropertiesRect, "Baddies" );
     }
 
     if ( lines != previousLines || columns != previousColumns ) {

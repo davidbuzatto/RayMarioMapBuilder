@@ -55,6 +55,10 @@ class MapEditor : public virtual Drawable {
     Rectangle layersPreviewRect;
     std::vector<LayerState> layersState;
 
+    Rectangle toogleGroupInsertRect;
+    Rectangle checkShowGridRect;
+    int activeInsertOption;
+
     Rectangle mapPropertiesRect;
     Rectangle spinnerLinesRect;
     Rectangle spinnerColumnsRect;
@@ -63,9 +67,11 @@ class MapEditor : public virtual Drawable {
     Rectangle spinnerBackgroundTextureIdRect;
     Rectangle spinnerTimeToFinishRect;
 
-    Rectangle colorPickerContainerRect;
-    Rectangle colorPickerRect;
-    Rectangle sliderAlphaRect;
+    Rectangle componentPropertiesRect;
+
+    Rectangle colorPickerTileContainerRect;
+    Rectangle colorPickerTileRect;
+    Rectangle sliderAlphaTileRect;
 
     Tile dummyTile;
 
@@ -73,6 +79,7 @@ class MapEditor : public virtual Drawable {
     Color backgroundColor;
     int backgroundTextureId;
     int timeToFinish;
+    bool showGrid;
 
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );
