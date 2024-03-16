@@ -291,6 +291,8 @@
     <ClInclude Include="..\game\src\raymath.h" />
     <ClInclude Include="..\game\src\ResourceManager.h" />
     <ClInclude Include="..\game\src\Tile.h" />
+    <ClInclude Include="..\game\src\TileCollisionType.h" />
+    <ClInclude Include="..\game\src\TilePaintingType.h" />
     <ClInclude Include="..\game\src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

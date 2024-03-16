@@ -80,5 +80,11 @@
     <ClInclude Include="..\game\src\ComponentInsertionType.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="..\game\src\TileCollisionType.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\game\src\TilePaintingType.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

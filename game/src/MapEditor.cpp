@@ -13,6 +13,8 @@
 #define RAYGUI_IMPLEMENTATION
 #include "ComponentInsertionType.h"
 #include "raygui.h"
+#include "TileCollisionType.h"
+#include "TilePaintingType.h"
 #undef RAYGUI_IMPLEMENTATION
 
 MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
@@ -64,9 +66,15 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
 
     componentPropertiesRect( Rectangle( mapPropertiesRect.x, mapPropertiesRect.y + mapPropertiesRect.height + 10, 245, 250 ) ),
 
-    colorPickerTileContainerRect( Rectangle( componentPropertiesRect.x + 10, componentPropertiesRect.y + 20, 145, 150 ) ),
+    comboTileCollisionTypeRect( Rectangle( componentPropertiesRect.x + 10, componentPropertiesRect.y + 10, 145, 20 ) ),
+    togglePaitingTypeRect( Rectangle( comboTileCollisionTypeRect.x, comboTileCollisionTypeRect.y + comboTileCollisionTypeRect.height + 10, 72, 20 ) ),
+    colorPickerTileContainerRect( Rectangle( togglePaitingTypeRect.x, togglePaitingTypeRect.y + togglePaitingTypeRect.height + 10, 145, 150 ) ),
     colorPickerTileRect( Rectangle( colorPickerTileContainerRect.x + 10, colorPickerTileContainerRect.y + 10, 100, 100 ) ),
     sliderAlphaTileRect( Rectangle( colorPickerTileRect.x, colorPickerTileRect.y + colorPickerTileRect.height + 10, colorPickerTileRect.width, 20 ) ),
+    checkVisibleRect( Rectangle( colorPickerTileContainerRect.x, colorPickerTileContainerRect.y + colorPickerTileContainerRect.height + 10, 20, 20 ) ),
+    tileCollisionType( TILE_COLLISION_TYPE_SOLID ),
+    tilePaintingType( TILE_PAINTING_TYPE_TEXTURED ), 
+    tileVisible( true ),
 
     dummyTile( Vector2( 0, 0 ), BLACK, 1 ),
 
@@ -329,8 +337,8 @@ void MapEditor::inputAndUpdate() {
     }
 
     std::map<std::string, Music>& musics = ResourceManager::getMusics();
-    Music currentSelectedMusic = musics[TextFormat( "music%d", musicId )];
-    Music previousSelectedMusic = musics[TextFormat( "music%d", previousSelectedMusicId )];
+    const Music currentSelectedMusic = musics[TextFormat( "music%d", musicId )];
+    const Music previousSelectedMusic = musics[TextFormat( "music%d", previousSelectedMusicId )];
 
     if ( playMusic ) {
         if ( musicId != previousSelectedMusicId ) {
@@ -455,17 +463,22 @@ void MapEditor::draw() {
     }
 
     GuiGroupBox( mapPropertiesRect, "Map Properties" );
-    GuiSpinner( spinnerLinesRect, "Lines: ", &lines, minLines, maxLines, false );
-    GuiSpinner( spinnerColumnsRect, "Columns: ", &columns, minColumns, maxColumns, false );
+    GuiSpinner( spinnerLinesRect, "Lines: ", &lines, minLines, maxLines, linesEdit );
+    GuiSpinner( spinnerColumnsRect, "Columns: ", &columns, minColumns, maxColumns, columnsEdit );
 
     GuiLabel( labelBackgroundColorRect, "Background Color: " );
     GuiColorPicker( colorPickerBackgroundColorRect, nullptr, &backgroundColor );
     GuiSpinner( spinnerBackgroundTextureIdRect, "Background Texture: ", &backgroundTextureId, 1, 10, false );
     GuiSpinner( spinnerMusicIdRect, "Music: ", &musicId, 1, 9, false );
-    GuiSpinner( spinnerTimeToFinishRect, "Time to Finish: ", &timeToFinish, 1, 2000, true );
+    if ( GuiSpinner( spinnerTimeToFinishRect, "Time to Finish: ", &timeToFinish, 1, 2000, timeToFinishEdit ) ) timeToFinishEdit = !timeToFinishEdit;
 
     if ( activeInsertOption == COMPONENT_INSERTION_TYPE_TILES ) {
+
         GuiGroupBox( componentPropertiesRect, "Tiles" );
+
+        GuiToggleGroup( togglePaitingTypeRect, "textured;colored", &tilePaintingType );
+        GuiCheckBox( checkVisibleRect, "Visible", &tileVisible );
+
         GuiGroupBox( colorPickerTileContainerRect, "Color" );
         if ( firstSelectedTile != nullptr ) {
             GuiColorPicker( colorPickerTileRect, nullptr, firstSelectedTile->getColor() );
@@ -474,6 +487,42 @@ void MapEditor::draw() {
             GuiColorPicker( colorPickerTileRect, nullptr, dummyTile.getColor() );
             GuiColorBarAlpha( sliderAlphaTileRect, nullptr, dummyTile.getAlpha() );
         }
+
+        if ( GuiDropdownBox( comboTileCollisionTypeRect, "solid;solid from above;solid only for baddies;non-solid", &tileCollisionType, tileCollisionTypeEdit ) ) tileCollisionTypeEdit = !tileCollisionTypeEdit;
+
+        if ( GuiDropdownBox( 
+            Rectangle( 
+                checkVisibleRect.x, 
+                checkVisibleRect.y + checkVisibleRect.height + 10, 
+                100, 
+                checkVisibleRect.height
+            ), 
+            "terrain 1; terrain 2; terrain 3; terrain 4", &currentTerrainTile, terrainPageEdit ) ) terrainPageEdit = !terrainPageEdit;
+
+        int widthT = 24;
+        Rectangle terrainRect(
+            comboTileCollisionTypeRect.x + comboTileCollisionTypeRect.width + 10,
+            comboTileCollisionTypeRect.y,
+            55,
+            componentPropertiesRect.height - 20 );
+        GuiGroupBox( terrainRect, "Terrain");
+
+        
+
+        
+        for ( int i = 0; i < 12; i++ ) {
+            DrawTextureEx( textures[TextFormat("%c%d", 'A' + i, currentTerrainTile + 1 )],
+                           //textures[TextFormat( "%c%d", 'A', currentTerrainTile )],
+                           Vector2( terrainRect.x + 15,
+                                    terrainRect.y + 15 + ( widthT + 5 ) * i ), 
+                           0,
+                           (float) widthT / Tile::TILE_WIDTH, WHITE );
+            DrawRectangleLines( 
+                terrainRect.x + 15,
+                terrainRect.y + 15 + ( widthT + 5 ) * i,
+                widthT, widthT, BLACK );
+        }
+
     } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_BLOCKS ) {
         GuiGroupBox( componentPropertiesRect, "Blocks" );
     } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_ITEMS ) {

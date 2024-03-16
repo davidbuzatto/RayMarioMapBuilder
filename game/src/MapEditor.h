@@ -68,12 +68,26 @@ class MapEditor : public virtual Drawable {
     Rectangle spinnerBackgroundTextureIdRect;
     Rectangle spinnerMusicIdRect;
     Rectangle spinnerTimeToFinishRect;
+    bool linesEdit{ false };
+    bool columnsEdit{ false };
+    bool terrainPageEdit{ false };
+    bool timeToFinishEdit{ false };
+    int currentTerrainTile{ 0 };
+    
 
     Rectangle componentPropertiesRect;
 
+    Rectangle comboTileCollisionTypeRect;
+    Rectangle togglePaitingTypeRect;
     Rectangle colorPickerTileContainerRect;
     Rectangle colorPickerTileRect;
     Rectangle sliderAlphaTileRect;
+    Rectangle checkVisibleRect;
+    int tileCollisionType;
+    int tilePaintingType;
+    bool tileVisible;
+    bool tileCollisionTypeEdit{ false };
+
 
     Tile dummyTile;
 

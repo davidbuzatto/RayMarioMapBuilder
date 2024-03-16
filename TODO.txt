@@ -17,6 +17,3 @@ editar de fato os tiles
         visível
         
     Tiles com cor usam a cor. Tiles com textura substituem a cor.
-    
-    
-    Ferramentas para inserção: tiles, blocos, inimigos e mario
