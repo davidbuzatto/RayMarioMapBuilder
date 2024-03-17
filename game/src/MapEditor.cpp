@@ -10,11 +10,12 @@
 #include "ResourceManager.h"
 #include "Tile.h"
 #include "raylib.h"
-#define RAYGUI_IMPLEMENTATION
 #include "ComponentInsertionType.h"
-#include "raygui.h"
 #include "TileCollisionType.h"
 #include "TilePaintingType.h"
+
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 #undef RAYGUI_IMPLEMENTATION
 
 MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
@@ -53,7 +54,7 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     toogleGroupInsertRect( Rectangle( pos.x, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 44, 44 ) ),
     checkShowGridRect( Rectangle( pos.x + minColumns * Tile::TILE_WIDTH - 80, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 20, 20 ) ),
     checkPlayMusicRect( Rectangle( checkShowGridRect.x, checkShowGridRect.y + checkShowGridRect.height + 10, 20, 20 ) ),
-    activeInsertOption( 0 ),
+    activeInsertOption( static_cast<int>(ComponentInsertionType::baddies) ),
 
     mapPropertiesRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 260, 270 )  ),
     spinnerLinesRect( Rectangle( mapPropertiesRect.x + 125, mapPropertiesRect.y + 10, 100, 20 ) ),
@@ -67,13 +68,13 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     componentPropertiesRect( Rectangle( mapPropertiesRect.x, mapPropertiesRect.y + mapPropertiesRect.height + 10, 245, 250 ) ),
 
     comboTileCollisionTypeRect( Rectangle( componentPropertiesRect.x + 10, componentPropertiesRect.y + 10, 145, 20 ) ),
-    togglePaitingTypeRect( Rectangle( comboTileCollisionTypeRect.x, comboTileCollisionTypeRect.y + comboTileCollisionTypeRect.height + 10, 72, 20 ) ),
-    colorPickerTileContainerRect( Rectangle( togglePaitingTypeRect.x, togglePaitingTypeRect.y + togglePaitingTypeRect.height + 10, 145, 150 ) ),
+    togglePaintingTypeRect( Rectangle( comboTileCollisionTypeRect.x, comboTileCollisionTypeRect.y + comboTileCollisionTypeRect.height + 10, 72, 20 ) ),
+    colorPickerTileContainerRect( Rectangle( togglePaintingTypeRect.x, togglePaintingTypeRect.y + togglePaintingTypeRect.height + 10, 145, 150 ) ),
     colorPickerTileRect( Rectangle( colorPickerTileContainerRect.x + 10, colorPickerTileContainerRect.y + 10, 100, 100 ) ),
     sliderAlphaTileRect( Rectangle( colorPickerTileRect.x, colorPickerTileRect.y + colorPickerTileRect.height + 10, colorPickerTileRect.width, 20 ) ),
     checkVisibleRect( Rectangle( colorPickerTileContainerRect.x, colorPickerTileContainerRect.y + colorPickerTileContainerRect.height + 10, 20, 20 ) ),
-    tileCollisionType( TILE_COLLISION_TYPE_SOLID ),
-    tilePaintingType( TILE_PAINTING_TYPE_TEXTURED ), 
+    tileCollisionType( static_cast<int>(TileCollisionType::solid) ),
+    tilePaintingType( static_cast<int>(TilePaintingType::textured) ), 
     tileVisible( true ),
 
     dummyTile( Vector2( 0, 0 ), BLACK, 1 ),
@@ -94,6 +95,12 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
                 layers[k].push_back( new Tile( Vector2( j * Tile::TILE_WIDTH, i * Tile::TILE_WIDTH ), WHITE, 0 ) );
             }
         }
+    }
+
+    bool first = true;
+    for ( auto const& c : pipeColors ) {
+        pipeColorOptions += ( first ? "": ";" ) + c;
+        first = false;
     }
 
 }
@@ -445,10 +452,10 @@ void MapEditor::draw() {
 
     GuiToggleGroup( toogleGroupInsertRect, ";;;;", &activeInsertOption );
     DrawTexture( textures["B1"], toogleGroupInsertRect.x + 6, toogleGroupInsertRect.y + 6, WHITE );
-    DrawTexture( textures["blockQuestion0"], toogleGroupInsertRect.x + toogleGroupInsertRect.width + 8, toogleGroupInsertRect.y + 6, WHITE );
-    DrawTexture( textures["coin2"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 2 + 14, toogleGroupInsertRect.y + 6, WHITE );
-    DrawTexture( textures["goomba0R"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 3 + 12, toogleGroupInsertRect.y + 6, WHITE );
-    DrawTexture( textures["smallMario0R"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 4 + 12, toogleGroupInsertRect.y + 2, WHITE );
+    DrawTexture( textures["block8"], toogleGroupInsertRect.x + toogleGroupInsertRect.width + 8, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["coin"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 2 + 14, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["goombaR"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 3 + 12, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["marioR"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 4 + 12, toogleGroupInsertRect.y + 2, WHITE );
 
     GuiGroupBox( guiContainerRect, "Options" );
     GuiGroupBox( layersPreviewRect, "Layers" );
@@ -472,11 +479,13 @@ void MapEditor::draw() {
     GuiSpinner( spinnerMusicIdRect, "Music: ", &musicId, 1, 9, false );
     if ( GuiSpinner( spinnerTimeToFinishRect, "Time to Finish: ", &timeToFinish, 1, 2000, timeToFinishEdit ) ) timeToFinishEdit = !timeToFinishEdit;
 
-    if ( activeInsertOption == COMPONENT_INSERTION_TYPE_TILES ) {
+    int widthT = 24;
+
+    if ( activeInsertOption == static_cast<int>(ComponentInsertionType::tiles) ) {
 
         GuiGroupBox( componentPropertiesRect, "Tiles" );
 
-        GuiToggleGroup( togglePaitingTypeRect, "textured;colored", &tilePaintingType );
+        GuiToggleGroup( togglePaintingTypeRect, "textured;colored", &tilePaintingType );
         GuiCheckBox( checkVisibleRect, "Visible", &tileVisible );
 
         GuiGroupBox( colorPickerTileContainerRect, "Color" );
@@ -490,45 +499,195 @@ void MapEditor::draw() {
 
         if ( GuiDropdownBox( comboTileCollisionTypeRect, "solid;solid from above;solid only for baddies;non-solid", &tileCollisionType, tileCollisionTypeEdit ) ) tileCollisionTypeEdit = !tileCollisionTypeEdit;
 
-        if ( GuiDropdownBox( 
-            Rectangle( 
-                checkVisibleRect.x, 
-                checkVisibleRect.y + checkVisibleRect.height + 10, 
-                100, 
-                checkVisibleRect.height
-            ), 
-            "terrain 1; terrain 2; terrain 3; terrain 4", &currentTerrainTile, terrainPageEdit ) ) terrainPageEdit = !terrainPageEdit;
-
-        int widthT = 24;
         Rectangle terrainRect(
             comboTileCollisionTypeRect.x + comboTileCollisionTypeRect.width + 10,
-            comboTileCollisionTypeRect.y,
-            55,
-            componentPropertiesRect.height - 20 );
+            togglePaintingTypeRect.y,
+            88,
+            componentPropertiesRect.height - 50 );
         GuiGroupBox( terrainRect, "Terrain");
 
+        Rectangle pipesRect(
+            terrainRect.x + terrainRect.width + 10,
+            terrainRect.y,
+            55,
+            componentPropertiesRect.height - 50 );
+        GuiGroupBox( pipesRect, "Pipes");
         
-
-        
-        for ( int i = 0; i < 12; i++ ) {
-            DrawTextureEx( textures[TextFormat("%c%d", 'A' + i, currentTerrainTile + 1 )],
-                           //textures[TextFormat( "%c%d", 'A', currentTerrainTile )],
-                           Vector2( terrainRect.x + 15,
-                                    terrainRect.y + 15 + ( widthT + 5 ) * i ), 
-                           0,
-                           (float) widthT / Tile::TILE_WIDTH, WHITE );
-            DrawRectangleLines( 
-                terrainRect.x + 15,
-                terrainRect.y + 15 + ( widthT + 5 ) * i,
-                widthT, widthT, BLACK );
+        for ( int i = 0; i < 6; i++ ) {
+            DrawTexture( textures[TextFormat("%c%d", 'A' + i, currentTerrainTile + 1 )],
+                         terrainRect.x + 10,
+                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+                         WHITE );
         }
 
-    } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_BLOCKS ) {
+        for ( int i = 6; i < 12; i++ ) {
+            DrawTexture( textures[TextFormat("%c%d", 'A' + i, currentTerrainTile + 1 )],
+                         terrainRect.x + 15 + Tile::TILE_WIDTH,
+                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * (i-6),
+                         WHITE );
+        }
+
+        for ( int i = 6; i < 9; i++ ) {
+            DrawTexture( textures[TextFormat( "%c%d", 'M' + (i-6), currentTerrainTile + 1 )],
+                         terrainRect.x + 10,
+                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+                         WHITE );
+        }
+
+        for ( int i = 6; i < 9; i++ ) {
+            DrawTexture( textures[TextFormat( "%c%d", 'P' + (i-6), currentTerrainTile + 1 )],
+                         terrainRect.x + 15 + Tile::TILE_WIDTH,
+                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+                         WHITE );
+        }
+
+        const std::string &color = pipeColors[currentPipeColor];
+        for ( int i = 0; i < 4; i++ ) {
+            DrawTexture( textures[TextFormat( "pipe_%s%d", color.c_str(), i )],
+                         pipesRect.x + 10,
+                         pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+                         WHITE );
+        }
+
+        for ( int i = 4; i < 6; i++ ) {
+            DrawTexture( textures[TextFormat( "sm_pipe_%s%d", color.c_str(), (i-4) )],
+                         pipesRect.x + 10,
+                         pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+                         WHITE );
+        }
+
+        Rectangle comboTerrainRect(
+            comboTileCollisionTypeRect.x + comboTileCollisionTypeRect.width + 10,
+            comboTileCollisionTypeRect.y,
+            terrainRect.width,
+            comboTileCollisionTypeRect.height
+        );
+
+        Rectangle comboPipeColorsRect(
+            comboTerrainRect.x + comboTerrainRect.width + 10,
+            comboTerrainRect.y,
+            pipesRect.width,
+            comboTileCollisionTypeRect.height
+        );
+
+        if ( GuiDropdownBox(
+            comboPipeColorsRect,
+            pipeColorOptions.c_str(), &currentPipeColor, pipesPageEdit ) ) pipesPageEdit = !pipesPageEdit;
+
+        if ( GuiDropdownBox(
+            comboTerrainRect,
+            "terrain 1;terrain 2;terrain 3;terrain 4", &currentTerrainTile, terrainPageEdit ) ) terrainPageEdit = !terrainPageEdit;
+
+    } else if ( activeInsertOption == static_cast<int>(ComponentInsertionType::blocks) ) {
+
         GuiGroupBox( componentPropertiesRect, "Blocks" );
-    } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_ITEMS ) {
+
+        Rectangle staticRect(
+            componentPropertiesRect.x + 10,
+            componentPropertiesRect.y + 15,
+            52,
+            componentPropertiesRect.height - 25 );
+        GuiGroupBox( staticRect, "Static" );
+
+        Rectangle interactiveRect(
+            staticRect.x + staticRect.width + 10,
+            staticRect.y,
+            88,
+            componentPropertiesRect.height - 25 );
+        GuiGroupBox( interactiveRect, "Interactive" );
+
+        for ( int i = 0; i < 5; i++ ) {
+            DrawTexture( textures[TextFormat( "block%d", i )],
+                         staticRect.x + 10,
+                         staticRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i, WHITE );
+        }
+
+        for ( int i = 5; i < 8; i++ ) {
+            DrawTexture( textures[TextFormat( "block%d", i )],
+                         interactiveRect.x + 10,
+                         interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 5 ), WHITE );
+        }
+
+        for ( int i = 8; i < 14; i++ ) {
+            DrawTexture( textures[TextFormat( "block%d", i )],
+                         interactiveRect.x + 10 + Tile::TILE_WIDTH + 4,
+                         interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 8 ), WHITE );
+        }
+
+    } else if ( activeInsertOption == static_cast<int>(ComponentInsertionType::items) ) {
+
         GuiGroupBox( componentPropertiesRect, "Items" );
-    } else if ( activeInsertOption == COMPONENT_INSERTION_TYPE_BADDIES ) {
+        std::vector<Texture2D*> items{ &textures["coin"], &textures["yoshiCoin"] };
+
+        int offset = 0;
+
+        for ( size_t i = 0; i < items.size(); i++ ) {
+            DrawTexture( *( items[i] ),
+                         componentPropertiesRect.x + 10,
+                         componentPropertiesRect.y + 10 + offset, WHITE);
+            offset += items[i]->height + 4;
+        }
+        
+    } else if ( activeInsertOption == static_cast<int>(ComponentInsertionType::baddies) ) {
+
         GuiGroupBox( componentPropertiesRect, "Baddies" );
+
+        std::vector<Texture2D*> baddies {
+            &textures["goombaL"],
+            &textures["flyingGoombaL"],
+            &textures["redKoopaTroopaL"],
+            &textures["greenKoopaTroopaL"],
+            &textures["blueKoopaTroopaL"],
+            &textures["yellowKoopaTroopaL"],
+            &textures["rexL"],
+            &textures["montyMoleL"],
+            &textures["bobOmbL"],
+            &textures["bulletBillL"],
+            &textures["buzzyBeetleL"],
+            &textures["mummyBeetleL"],
+            &textures["swooperL"],
+            &textures["banzaiBillL"],
+            &textures["muncher"],
+            &textures["piranhaPlant"],
+            &textures["jumpingPiranhaPlant"]
+        };
+
+        int offset = 0;
+        int max = baddies.size();
+        int marginLeft = 0;
+        int maxWidth = 0;
+
+        std::vector<Vector2> intervals{
+            Vector2( 0, 2 ),
+            Vector2( 2, 6 ),
+            Vector2( 6, 13 ),
+            Vector2( 13, 14 ),
+            Vector2( 14, max )
+        };
+
+        for ( const auto& interval : intervals ) {
+
+            marginLeft += maxWidth + 10;
+            maxWidth = 0;
+            offset = 0;
+            size_t ini = static_cast<size_t>(interval.x);
+            size_t end = static_cast<size_t>(interval.y);
+
+            for ( size_t i = ini; i < end; i++ ) {
+                if ( maxWidth < baddies[i]->width ) {
+                    maxWidth = baddies[i]->width;
+                }
+            }
+
+            for ( size_t i = ini; i < end; i++ ) {
+                DrawTexture( *( baddies[i] ),
+                             componentPropertiesRect.x + marginLeft + maxWidth / 2 - baddies[i]->width / 2,
+                             componentPropertiesRect.y + 10 + offset, WHITE );
+                offset += baddies[i]->height + 10;
+            }
+
+        }
+
     }
 
     if ( lines != previousLines || columns != previousColumns ) {

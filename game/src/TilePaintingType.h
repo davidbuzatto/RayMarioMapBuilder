@@ -7,9 +7,9 @@
  */
 #pragma once
 
-enum TilePaintingType {
+enum class TilePaintingType {
 
-    TILE_PAINTING_TYPE_TEXTURED = 0,
-    TILE_PAINTING_TYPE_COLORED = 1
+    textured = 0,
+    colored = 1
 
 };

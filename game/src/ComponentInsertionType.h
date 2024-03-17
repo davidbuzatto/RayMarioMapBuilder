@@ -7,12 +7,12 @@
  */
 #pragma once
 
-enum ComponentInsertionType {
+enum class ComponentInsertionType {
 
-    COMPONENT_INSERTION_TYPE_TILES = 0,
-    COMPONENT_INSERTION_TYPE_BLOCKS = 1,
-    COMPONENT_INSERTION_TYPE_ITEMS = 2,
-    COMPONENT_INSERTION_TYPE_BADDIES = 3,
-    COMPONENT_INSERTION_TYPE_MARIO = 4
+    tiles = 0,
+    blocks = 1,
+    items = 2,
+    baddies = 3,
+    mario = 4
 
 };

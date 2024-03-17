@@ -7,11 +7,11 @@
  */
 #pragma once
 
-enum TileCollisionType {
+enum class TileCollisionType {
 
-    TILE_COLLISION_TYPE_SOLID = 0,
-    TILE_COLLISION_TYPE_SOLID_FROM_ABOVE = 1,
-    TILE_COLLISION_TYPE_SOLID_ONLY_FOR_BADDIES = 2,
-    TILE_COLLISION_TYPE_NON_SOLID = 3
+    solid = 0,
+    solid_from_above = 1,
+    solid_only_for_baddies = 2,
+    non_solid = 3
 
 };

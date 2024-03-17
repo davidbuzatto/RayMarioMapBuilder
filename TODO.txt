@@ -1,19 +1,18 @@
 editar de fato os tiles
-    tipo do tile (sólido, sólido para inimigos, sólido por cima, não sólido, textura, visível)
-    blocos (já implementados)
-        bloco de mensagem
-	na escolha do tile, escolher o tile set e depois o item
-    escolha do bloco
-        mensagem (para cada bloco de mensagem)
-        
-        
-        
-    Colored/Textured
-    
-    Tiles ou Blocks
-    
-    Tiles podem ser:
-        sólido, sólido para inimigos, sólido por cima, não sólido
-        visível
-        
-    Tiles com cor usam a cor. Tiles com textura substituem a cor.
+    bloco de mensagem: permitir definir texto
+    tiles de cenário/ fim de fase montar os blocos?
+	ao selecionar algum componte, mostrar no mouse um preview com alpha
+    definir retângulos para organizar e permitir interação com mouse
+    mudar lógica de interação com o editor do mapa
+       escolher componente e replicar nos tiles ao selecionar
+    defazer/refazer
+    ferramenta de borracha/exclusão
+    ferramenta de cópia:
+        copiar para direita até o fim,
+        esquerda até o começo,
+        cima até começo,
+        baixo até fim,
+        linha inteira,
+        coluna inteira
+        seleção de mais de uma linha (coluna) e aplicar cópias para direita e esquerda e linha inteira
+        seleção de mais de uma coluna e aplicar cópias para cima e para baixo

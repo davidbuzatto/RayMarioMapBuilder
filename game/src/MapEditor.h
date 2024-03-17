@@ -8,6 +8,7 @@
 
 #pragma once
 #include <vector>
+#include <string>
 
 #include "Drawable.h"
 #include "raylib.h"
@@ -43,7 +44,6 @@ class MapEditor : public virtual Drawable {
     int viewOffsetLine;
     int viewOffsetColumn;
 
-    //std::vector<Tile*> tiles;
     std::vector<std::vector<Tile*>> layers;
     Tile *firstSelectedTile;
     int currentLayer;
@@ -71,14 +71,16 @@ class MapEditor : public virtual Drawable {
     bool linesEdit{ false };
     bool columnsEdit{ false };
     bool terrainPageEdit{ false };
+    bool pipesPageEdit{ false };
     bool timeToFinishEdit{ false };
     int currentTerrainTile{ 0 };
+    int currentPipeColor{ 0 };
     
 
     Rectangle componentPropertiesRect;
 
     Rectangle comboTileCollisionTypeRect;
-    Rectangle togglePaitingTypeRect;
+    Rectangle togglePaintingTypeRect;
     Rectangle colorPickerTileContainerRect;
     Rectangle colorPickerTileRect;
     Rectangle sliderAlphaTileRect;
@@ -88,6 +90,8 @@ class MapEditor : public virtual Drawable {
     bool tileVisible;
     bool tileCollisionTypeEdit{ false };
 
+    std::vector<std::string> pipeColors{ "blue", "darkgray", "gray", "green", "orange", "pink", "purple", "red", "yellow" };
+    std::string pipeColorOptions;
 
     Tile dummyTile;
 
