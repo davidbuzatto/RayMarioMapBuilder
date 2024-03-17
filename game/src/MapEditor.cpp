@@ -54,7 +54,7 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     toogleGroupInsertRect( Rectangle( pos.x, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 44, 44 ) ),
     checkShowGridRect( Rectangle( pos.x + minColumns * Tile::TILE_WIDTH - 80, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 20, 20 ) ),
     checkPlayMusicRect( Rectangle( checkShowGridRect.x, checkShowGridRect.y + checkShowGridRect.height + 10, 20, 20 ) ),
-    activeInsertOption( static_cast<int>(ComponentInsertionType::baddies) ),
+    activeInsertOption( static_cast<int>(ComponentInsertionType::tiles) ),
 
     mapPropertiesRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 260, 270 )  ),
     spinnerLinesRect( Rectangle( mapPropertiesRect.x + 125, mapPropertiesRect.y + 10, 100, 20 ) ),
@@ -85,7 +85,29 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     timeToFinish( 200 ),
     showGrid( true ),
     playMusic( false ),
-    previousSelectedMusicId( musicId ) {
+    previousSelectedMusicId( musicId ),
+
+    terrainRect( Rectangle(
+        comboTileCollisionTypeRect.x + comboTileCollisionTypeRect.width + 10,
+        togglePaintingTypeRect.y,
+        88,
+        componentPropertiesRect.height - 50 ) ),
+    pipesRect( Rectangle(
+        terrainRect.x + terrainRect.width + 10,
+        terrainRect.y,
+        55,
+        componentPropertiesRect.height - 50 ) ),
+    selectedTileRect( nullptr )
+
+
+
+
+
+
+
+
+
+{
 
     for ( int k = 0; k < maxLayers; k++ ) {
         layers.emplace_back();
@@ -101,6 +123,15 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     for ( auto const& c : pipeColors ) {
         pipeColorOptions += ( first ? "": ";" ) + c;
         first = false;
+    }
+
+    for ( int i = 0; i < 6; i++ ) {
+        tilesRects.push_back( Rectangle( terrainRect.x + 10,
+                                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+                                         Tile::TILE_WIDTH, Tile::TILE_WIDTH ) );
+        tilesRects.push_back( Rectangle( terrainRect.x + 15 + Tile::TILE_WIDTH,
+                                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+                                         Tile::TILE_WIDTH, Tile::TILE_WIDTH ) );
     }
 
 }
@@ -226,9 +257,12 @@ void MapEditor::inputAndUpdate() {
     componentPropertiesRect.width = guiContainerRect.width - layersPreviewRect.width - 30;
     componentPropertiesRect.height = guiContainerRect.height - mapPropertiesRect.height - 40;
 
-    if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {    
+    terrainRect.height = componentPropertiesRect.height - 50;
+    pipesRect.height = componentPropertiesRect.height - 50;
 
-        Vector2 mousePos = GetMousePosition();
+    Vector2 mousePos = GetMousePosition();
+
+    if ( IsMouseButtonPressed( MOUSE_BUTTON_LEFT ) ) {    
 
         for ( int i = maxLayers - 1; i >= 0; i-- ) {
             Rectangle previewRect( layersPreviewRect.x + 40,
@@ -254,9 +288,16 @@ void MapEditor::inputAndUpdate() {
             deselectTiles();
         }
 
-    } else if ( IsMouseButtonDown( MOUSE_BUTTON_LEFT ) ) {
+        if ( activeInsertOption == static_cast<int>( ComponentInsertionType::tiles) && !terrainPageEdit && !pipesPageEdit ) {
+            for ( auto& tileR : tilesRects ) {
+                if ( CheckCollisionPointRec( mousePos, tileR ) ) {
+                    selectedTileRect = &tileR;
+                    break;
+                }
+            }
+        }
 
-        Vector2 mousePos = GetMousePosition();
+    } else if ( IsMouseButtonDown( MOUSE_BUTTON_LEFT ) ) {
 
         if ( isMouseInsideEditor( mousePos ) ) {
 
@@ -342,6 +383,7 @@ void MapEditor::inputAndUpdate() {
     if ( viewOffsetColumn > columns - minColumns ) {
         viewOffsetColumn = columns - minColumns;
     }
+
 
     std::map<std::string, Music>& musics = ResourceManager::getMusics();
     const Music currentSelectedMusic = musics[TextFormat( "music%d", musicId )];
@@ -499,31 +541,19 @@ void MapEditor::draw() {
 
         if ( GuiDropdownBox( comboTileCollisionTypeRect, "solid;solid from above;solid only for baddies;non-solid", &tileCollisionType, tileCollisionTypeEdit ) ) tileCollisionTypeEdit = !tileCollisionTypeEdit;
 
-        Rectangle terrainRect(
-            comboTileCollisionTypeRect.x + comboTileCollisionTypeRect.width + 10,
-            togglePaintingTypeRect.y,
-            88,
-            componentPropertiesRect.height - 50 );
         GuiGroupBox( terrainRect, "Terrain");
-
-        Rectangle pipesRect(
-            terrainRect.x + terrainRect.width + 10,
-            terrainRect.y,
-            55,
-            componentPropertiesRect.height - 50 );
         GuiGroupBox( pipesRect, "Pipes");
         
         for ( int i = 0; i < 6; i++ ) {
-            DrawTexture( textures[TextFormat("%c%d", 'A' + i, currentTerrainTile + 1 )],
-                         terrainRect.x + 10,
-                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
+            Rectangle* r1 = &tilesRects[i];
+            Rectangle* r2 = &tilesRects[i+6];
+            DrawTexture( textures[TextFormat( "%c%d", 'A' + i, currentTerrainTile + 1 )],
+                         r1->x,
+                         r1->y,
                          WHITE );
-        }
-
-        for ( int i = 6; i < 12; i++ ) {
-            DrawTexture( textures[TextFormat("%c%d", 'A' + i, currentTerrainTile + 1 )],
-                         terrainRect.x + 15 + Tile::TILE_WIDTH,
-                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * (i-6),
+            DrawTexture( textures[TextFormat( "%c%d", 'A' + (i+6), currentTerrainTile + 1 )],
+                         r2->x,
+                         r2->y,
                          WHITE );
         }
 
@@ -532,10 +562,7 @@ void MapEditor::draw() {
                          terrainRect.x + 10,
                          terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
                          WHITE );
-        }
-
-        for ( int i = 6; i < 9; i++ ) {
-            DrawTexture( textures[TextFormat( "%c%d", 'P' + (i-6), currentTerrainTile + 1 )],
+            DrawTexture( textures[TextFormat( "%c%d", 'M' + ( i - 3 ), currentTerrainTile + 1 )],
                          terrainRect.x + 15 + Tile::TILE_WIDTH,
                          terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
                          WHITE );
@@ -554,6 +581,11 @@ void MapEditor::draw() {
                          pipesRect.x + 10,
                          pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
                          WHITE );
+        }
+
+        if ( selectedTileRect != nullptr ) {
+            DrawRectangleRec( *selectedTileRect, Fade( BLUE, 0.3 ) );
+            DrawRectangleLinesEx( *selectedTileRect, 3, BLUE );
         }
 
         Rectangle comboTerrainRect(

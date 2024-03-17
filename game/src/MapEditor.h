@@ -104,6 +104,14 @@ class MapEditor : public virtual Drawable {
     bool playMusic;
     int previousSelectedMusicId;
 
+    // component rectangles and helper attributes for GUI construction and interaction
+    Rectangle terrainRect;
+    Rectangle pipesRect;
+    Rectangle* selectedTileRect;
+    std::vector<Rectangle> tilesRects;
+    std::vector<Rectangle> pipesRects;
+
+
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );
     void deselectTile( Vector2 &mousePos );
