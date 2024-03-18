@@ -99,14 +99,6 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
         componentPropertiesRect.height - 50 ) ),
     selectedTileRect( nullptr )
 
-
-
-
-
-
-
-
-
 {
 
     for ( int k = 0; k < maxLayers; k++ ) {
@@ -123,15 +115,6 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     for ( auto const& c : pipeColors ) {
         pipeColorOptions += ( first ? "": ";" ) + c;
         first = false;
-    }
-
-    for ( int i = 0; i < 6; i++ ) {
-        tilesRects.push_back( Rectangle( terrainRect.x + 10,
-                                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
-                                         Tile::TILE_WIDTH, Tile::TILE_WIDTH ) );
-        tilesRects.push_back( Rectangle( terrainRect.x + 15 + Tile::TILE_WIDTH,
-                                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
-                                         Tile::TILE_WIDTH, Tile::TILE_WIDTH ) );
     }
 
 }
@@ -247,7 +230,58 @@ void MapEditor::drawLayerPreview( int x, int y, int tileWidth, bool active, cons
 
 }
 
+void MapEditor::highlightSelectedTile( Tile& tile ) const {
+        DrawRectangleRec( tile.getRectangle(), Fade( BLUE, 0.3 ) );
+        DrawRectangleLinesEx( tile.getRectangle(), 3, BLUE );
+}
+
 void MapEditor::inputAndUpdate() {
+
+    std::map<std::string, Texture2D>& textures = ResourceManager::getTextures();
+
+    if ( !resourceDependantComponentsCreated && !textures.empty() ) {
+
+        for ( int k = 1; k < 5; k++ ) {
+
+            int p = 0;
+
+            for ( int i = 0; i < 18; i += 2 ) {
+                tilesToSelect.push_back( Tile( Vector2( terrainRect.x + 10,
+                                                        terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
+                                               &textures[TextFormat( "%c%d", 'A' + i, k )], 1 ) );
+                tilesToSelect.push_back( Tile( Vector2( terrainRect.x + 15 + Tile::TILE_WIDTH,
+                                                        terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
+                                               &textures[TextFormat( "%c%d", 'A' + ( i + 1 ), k )], 1 ) );
+                p++;
+            }
+
+        }
+
+        for ( const auto& color : pipeColors ) {
+
+            int p = 0;
+
+            for ( int i = 0; i < 4; i++ ) {
+                pipesToSelect.push_back( Tile( Vector2( pipesRect.x + 10,
+                                                        pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
+                                               &textures[TextFormat( "pipe_%s%d", color.c_str(), i )], 1 ) );
+                p++;
+            }
+            for ( int i = 4; i < 6; i++ ) {
+                pipesToSelect.push_back( Tile( Vector2( pipesRect.x + 10,
+                                                        pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
+                                               &textures[TextFormat( "sm_pipe_%s%d", color.c_str(), ( i - 4 ) )], 1 ) );
+                p++;
+            }
+
+        }
+        
+
+        selectedTileRect = tilesToSelect.data();
+        selectedTileRect->setSelected( true );
+        resourceDependantComponentsCreated = true;
+
+    }
 
     guiContainerRect.width = GetScreenWidth() - ( tileComposerDim.x + 60 );
     guiContainerRect.height = GetScreenHeight() - 20;
@@ -284,17 +318,42 @@ void MapEditor::inputAndUpdate() {
                 selectTile( mousePos );
             }
             
-        } else if ( !CheckCollisionPointRec( mousePos, colorPickerTileContainerRect ) ) {
+        }/* else if ( !CheckCollisionPointRec( mousePos, colorPickerTileContainerRect ) ) {
             deselectTiles();
-        }
+        }*/
 
         if ( activeInsertOption == static_cast<int>( ComponentInsertionType::tiles) && !terrainPageEdit && !pipesPageEdit ) {
-            for ( auto& tileR : tilesRects ) {
-                if ( CheckCollisionPointRec( mousePos, tileR ) ) {
-                    selectedTileRect = &tileR;
+
+            int ini = currentTerrainTile * 18;
+            int end = ini + 18;
+
+            for ( int i = ini; i < end; i++ ) {
+                Tile& tile = tilesToSelect[i];
+                if ( CheckCollisionPointRec( mousePos, tile.getRectangle() ) ) {
+                    if ( selectedTileRect != nullptr ) {
+                        selectedTileRect->setSelected( false );
+                    }
+                    selectedTileRect = &tile;
+                    selectedTileRect->setSelected( true );
                     break;
                 }
             }
+
+            ini = currentPipeColor * 6;
+            end = ini + 6;
+
+            for ( int i = ini; i < end; i++ ) {
+                Tile& tile = pipesToSelect[i];
+                if ( CheckCollisionPointRec( mousePos, tile.getRectangle() ) ) {
+                    if ( selectedTileRect != nullptr ) {
+                        selectedTileRect->setSelected( false );
+                    }
+                    selectedTileRect = &tile;
+                    selectedTileRect->setSelected( true );
+                    break;
+                }
+            }
+
         }
 
     } else if ( IsMouseButtonDown( MOUSE_BUTTON_LEFT ) ) {
@@ -494,7 +553,7 @@ void MapEditor::draw() {
 
     GuiToggleGroup( toogleGroupInsertRect, ";;;;", &activeInsertOption );
     DrawTexture( textures["B1"], toogleGroupInsertRect.x + 6, toogleGroupInsertRect.y + 6, WHITE );
-    DrawTexture( textures["block8"], toogleGroupInsertRect.x + toogleGroupInsertRect.width + 8, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["block9"], toogleGroupInsertRect.x + toogleGroupInsertRect.width + 8, toogleGroupInsertRect.y + 6, WHITE );
     DrawTexture( textures["coin"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 2 + 14, toogleGroupInsertRect.y + 6, WHITE );
     DrawTexture( textures["goombaR"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 3 + 12, toogleGroupInsertRect.y + 6, WHITE );
     DrawTexture( textures["marioR"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 4 + 12, toogleGroupInsertRect.y + 2, WHITE );
@@ -521,8 +580,6 @@ void MapEditor::draw() {
     GuiSpinner( spinnerMusicIdRect, "Music: ", &musicId, 1, 9, false );
     if ( GuiSpinner( spinnerTimeToFinishRect, "Time to Finish: ", &timeToFinish, 1, 2000, timeToFinishEdit ) ) timeToFinishEdit = !timeToFinishEdit;
 
-    int widthT = 24;
-
     if ( activeInsertOption == static_cast<int>(ComponentInsertionType::tiles) ) {
 
         GuiGroupBox( componentPropertiesRect, "Tiles" );
@@ -541,51 +598,27 @@ void MapEditor::draw() {
 
         if ( GuiDropdownBox( comboTileCollisionTypeRect, "solid;solid from above;solid only for baddies;non-solid", &tileCollisionType, tileCollisionTypeEdit ) ) tileCollisionTypeEdit = !tileCollisionTypeEdit;
 
-        GuiGroupBox( terrainRect, "Terrain");
-        GuiGroupBox( pipesRect, "Pipes");
-        
-        for ( int i = 0; i < 6; i++ ) {
-            Rectangle* r1 = &tilesRects[i];
-            Rectangle* r2 = &tilesRects[i+6];
-            DrawTexture( textures[TextFormat( "%c%d", 'A' + i, currentTerrainTile + 1 )],
-                         r1->x,
-                         r1->y,
-                         WHITE );
-            DrawTexture( textures[TextFormat( "%c%d", 'A' + (i+6), currentTerrainTile + 1 )],
-                         r2->x,
-                         r2->y,
-                         WHITE );
+        GuiGroupBox( terrainRect, "Terrain" );
+        GuiGroupBox( pipesRect, "Pipes" );
+
+        int ini = currentTerrainTile * 18;
+        int end = ini + 18;
+
+        for ( int i = ini; i < end; i++ ) {
+            tilesToSelect[i].draw();
+            if ( tilesToSelect[i].isSelected() ) {
+                highlightSelectedTile( tilesToSelect[i] );
+            }
         }
 
-        for ( int i = 6; i < 9; i++ ) {
-            DrawTexture( textures[TextFormat( "%c%d", 'M' + (i-6), currentTerrainTile + 1 )],
-                         terrainRect.x + 10,
-                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
-                         WHITE );
-            DrawTexture( textures[TextFormat( "%c%d", 'M' + ( i - 3 ), currentTerrainTile + 1 )],
-                         terrainRect.x + 15 + Tile::TILE_WIDTH,
-                         terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
-                         WHITE );
-        }
+        ini = currentPipeColor * 6;
+        end = ini + 6;
 
-        const std::string &color = pipeColors[currentPipeColor];
-        for ( int i = 0; i < 4; i++ ) {
-            DrawTexture( textures[TextFormat( "pipe_%s%d", color.c_str(), i )],
-                         pipesRect.x + 10,
-                         pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
-                         WHITE );
-        }
-
-        for ( int i = 4; i < 6; i++ ) {
-            DrawTexture( textures[TextFormat( "sm_pipe_%s%d", color.c_str(), (i-4) )],
-                         pipesRect.x + 10,
-                         pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i,
-                         WHITE );
-        }
-
-        if ( selectedTileRect != nullptr ) {
-            DrawRectangleRec( *selectedTileRect, Fade( BLUE, 0.3 ) );
-            DrawRectangleLinesEx( *selectedTileRect, 3, BLUE );
+        for ( int i = ini; i < end; i++ ) {
+            pipesToSelect[i].draw();
+            if ( pipesToSelect[i].isSelected() ) {
+                highlightSelectedTile( pipesToSelect[i] );
+            }
         }
 
         Rectangle comboTerrainRect(
@@ -634,16 +667,16 @@ void MapEditor::draw() {
                          staticRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i, WHITE );
         }
 
-        for ( int i = 5; i < 8; i++ ) {
+        for ( int i = 5; i < 9; i++ ) {
             DrawTexture( textures[TextFormat( "block%d", i )],
                          interactiveRect.x + 10,
                          interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 5 ), WHITE );
         }
 
-        for ( int i = 8; i < 14; i++ ) {
+        for ( int i = 9; i < 15; i++ ) {
             DrawTexture( textures[TextFormat( "block%d", i )],
                          interactiveRect.x + 10 + Tile::TILE_WIDTH + 4,
-                         interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 8 ), WHITE );
+                         interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 9 ), WHITE );
         }
 
     } else if ( activeInsertOption == static_cast<int>(ComponentInsertionType::items) ) {

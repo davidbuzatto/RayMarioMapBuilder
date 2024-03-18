@@ -107,10 +107,11 @@ class MapEditor : public virtual Drawable {
     // component rectangles and helper attributes for GUI construction and interaction
     Rectangle terrainRect;
     Rectangle pipesRect;
-    Rectangle* selectedTileRect;
-    std::vector<Rectangle> tilesRects;
-    std::vector<Rectangle> pipesRects;
+    Tile* selectedTileRect;
+    std::vector<Tile> tilesToSelect;
+    std::vector<Tile> pipesToSelect;
 
+    bool resourceDependantComponentsCreated{ false };
 
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );
@@ -121,6 +122,7 @@ class MapEditor : public virtual Drawable {
     bool isMouseInsideEditor( const Vector2 &mousePos ) const;
 
     void drawLayerPreview( int x, int y, int tileWidth, bool active, const std::vector<Tile*>& tiles ) const;
+    void highlightSelectedTile( Tile &tile ) const;
 
 public:
 

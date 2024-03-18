@@ -1,4 +1,6 @@
 editar de fato os tiles
+    bloco invisível na edição de blocos (componente bloco invisível)
+    
     bloco de mensagem: permitir definir texto
     tiles de cenário/ fim de fase montar os blocos?
 	ao selecionar algum componte, mostrar no mouse um preview com alpha

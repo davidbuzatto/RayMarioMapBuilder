@@ -146,7 +146,7 @@ void ResourceManager::loadTextures() {
         }
 
         // blocks (editor)
-        for ( int i = 0; i < 14; i++ ) {
+        for ( int i = 0; i < 15; i++ ) {
             std::stringstream ss;
             ss << "block" << i;
             if ( loadFromRRES ) {

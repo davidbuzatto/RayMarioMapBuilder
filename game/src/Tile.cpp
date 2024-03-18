@@ -17,7 +17,20 @@ Tile::Tile( Vector2 pos, Color color, float alpha )
     dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
     color( color ),
     alpha( alpha ),
-    selected( false ) {
+    texture( nullptr ),
+    selected( false ),
+    visible( true ) {
+}
+
+Tile::Tile( Vector2 pos, Texture2D* texture, float alpha )
+    :
+    pos( pos ),
+    dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
+    color( BLACK ),
+    alpha( alpha ),
+    texture( texture ),
+    selected( false ),
+    visible( true ) {
 }
 
 Tile::~Tile() = default;
@@ -27,11 +40,23 @@ void Tile::inputAndUpdate() {
 }
 
 void Tile::draw() {
-    DrawRectangle( pos.x, pos.y, dim.x, dim.y, color );
+    if ( visible ) {
+        if ( texture != nullptr ) {
+            DrawTexture( *texture, pos.x, pos.y, WHITE );
+        } else {
+            DrawRectangle( pos.x, pos.y, dim.x, dim.y, color );
+        }
+    }
 }
 
 void Tile::draw( Vector2 drawPos ) {
-    DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, Fade( color, alpha ) );
+    if ( visible ) {
+        if ( texture != nullptr ) {
+            DrawTexture( *texture, drawPos.x, drawPos.y, WHITE );
+        } else {
+            DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, Fade( color, alpha ) );
+        }
+    }
 }
 
 Vector2& Tile::getPos() {
@@ -42,6 +67,9 @@ Vector2& Tile::getDim() {
 }
 
 Rectangle Tile::getRectangle() const {
+    if ( texture != nullptr ) {
+        return Rectangle( pos.x, pos.y, texture->width, texture->height );
+    }
     return Rectangle( pos.x, pos.y, dim.x, dim.y );
 }
 

@@ -16,13 +16,18 @@ class Tile : public virtual Drawable {
     Vector2 dim;
     Color color;
     float alpha;
+    Texture2D* texture;
+
     bool selected;
+    bool visible;
+    
     
 public:
 
     static constexpr int TILE_WIDTH = 32;
 
     Tile( Vector2 pos, Color color, float alpha );
+    Tile( Vector2 pos, Texture2D* texture, float alpha );
     virtual ~Tile();
 
     void inputAndUpdate();
