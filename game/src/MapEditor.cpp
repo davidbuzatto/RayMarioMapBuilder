@@ -77,7 +77,7 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     tilePaintingType( static_cast<int>(TilePaintingType::textured) ), 
     tileVisible( true ),
 
-    dummyTile( Vector2( 0, 0 ), BLACK, 1 ),
+    coloredModelTile( Vector2( 0, 0 ), BLACK, 1 ),
 
     backgroundColor( WHITE ),
     backgroundTextureId( 1 ),
@@ -164,6 +164,21 @@ void MapEditor::selectTile( Vector2 &mousePos ) {
 
 }
 
+Tile* MapEditor::getTileFromPosition( Vector2& mousePos ) {
+
+    int line;
+    int column;
+
+    computePressedLineAndColumn( mousePos, line, column );
+
+    if ( isTilePositionValid( line, column ) ) {
+        return layers[currentLayer - 1][line * columns + column];
+    }
+
+    return nullptr;
+
+}
+
 void MapEditor::deselectTile( Vector2 &mousePos ) {
 
     int line;
@@ -221,7 +236,18 @@ void MapEditor::drawLayerPreview( int x, int y, int tileWidth, bool active, cons
             int p = i * columns + j;
             if ( p < tiles.size() ) {
                 Tile *tile = tiles[p];
-                DrawRectangle( x + (j-startColumn) * tileWidth, y + (i-startLine) * tileWidth, tileWidth, tileWidth, Fade( *(tile->getColor()), *(tile->getAlpha())) );
+                if ( tile->isVisible() ) {
+                    if ( tile->getTexture() != nullptr ) {
+                        DrawTextureEx(
+                            *( tile->getTexture() ),
+                            Vector2( x + ( j - startColumn ) * tileWidth, y + ( i - startLine ) * tileWidth ),
+                            0,
+                            static_cast<float>( tileWidth ) / Tile::TILE_WIDTH,
+                            WHITE );
+                    } else {
+                        DrawRectangle( x + ( j - startColumn ) * tileWidth, y + ( i - startLine ) * tileWidth, tileWidth, tileWidth, Fade( *( tile->getColor() ), *( tile->getAlpha() ) ) );
+                    }
+                }
             }
         }
     }
@@ -312,15 +338,19 @@ void MapEditor::inputAndUpdate() {
 
             computePressedLineAndColumn( mousePos, pressedLine, pressedColumn );
 
-            if ( isTileSelected( mousePos ) ) {
-                deselectTile( mousePos );
-            } else {
-                selectTile( mousePos );
+            Tile* tile = getTileFromPosition( mousePos );
+
+            if ( tile != nullptr ) {
+                if ( tilePaintingType == static_cast<int>( TilePaintingType::textured ) ) {
+                    if ( selectedTileRect != nullptr ) {
+                        tile->copyData( *selectedTileRect, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                    }
+                } else { // colored
+                    tile->copyData( coloredModelTile, Tile::getCollisionTypeFromInt( tileCollisionType), tileVisible );
+                }
             }
             
-        }/* else if ( !CheckCollisionPointRec( mousePos, colorPickerTileContainerRect ) ) {
-            deselectTiles();
-        }*/
+        }
 
         if ( activeInsertOption == static_cast<int>( ComponentInsertionType::tiles) && !terrainPageEdit && !pipesPageEdit ) {
 
@@ -367,10 +397,22 @@ void MapEditor::inputAndUpdate() {
 
             if ( pressedLine != currentLine || 
                  pressedColumn != currentColumn ) {
-                selectTile( mousePos );
+
+                Tile* tile = getTileFromPosition( mousePos );
+
+                if ( tile != nullptr ) {
+                    if ( tilePaintingType == static_cast<int>( TilePaintingType::textured ) ) {
+                        if ( selectedTileRect != nullptr ) {
+                            tile->copyData( *selectedTileRect, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                        }
+                    } else { // colored
+                        tile->copyData( coloredModelTile, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                    }
+                }
+
             }
 
-        } else if ( CheckCollisionPointRec( mousePos, colorPickerTileContainerRect ) ) {
+        }/* else if ( CheckCollisionPointRec( mousePos, colorPickerTileContainerRect ) ) {
 
             for ( auto& tile : layers[currentLayer - 1] ) {
                 if ( tile->isSelected() && firstSelectedTile != nullptr ) {
@@ -379,7 +421,7 @@ void MapEditor::inputAndUpdate() {
                 }
             }
 
-        }
+        }*/
 
     } else if ( IsMouseButtonReleased( MOUSE_BUTTON_LEFT ) ) {
         pressedLine = -1;
@@ -592,8 +634,8 @@ void MapEditor::draw() {
             GuiColorPicker( colorPickerTileRect, nullptr, firstSelectedTile->getColor() );
             GuiColorBarAlpha( sliderAlphaTileRect, nullptr, firstSelectedTile->getAlpha() );
         } else {
-            GuiColorPicker( colorPickerTileRect, nullptr, dummyTile.getColor() );
-            GuiColorBarAlpha( sliderAlphaTileRect, nullptr, dummyTile.getAlpha() );
+            GuiColorPicker( colorPickerTileRect, nullptr, coloredModelTile.getColor() );
+            GuiColorBarAlpha( sliderAlphaTileRect, nullptr, coloredModelTile.getAlpha() );
         }
 
         if ( GuiDropdownBox( comboTileCollisionTypeRect, "solid;solid from above;solid only for baddies;non-solid", &tileCollisionType, tileCollisionTypeEdit ) ) tileCollisionTypeEdit = !tileCollisionTypeEdit;
@@ -764,6 +806,23 @@ void MapEditor::draw() {
 
     previousLines = lines;
     previousColumns = columns;
+
+
+    Vector2 mousePos = GetMousePosition();
+    if ( isMouseInsideEditor( mousePos ) ) {
+
+        mousePos.x -= Tile::TILE_WIDTH / 2;
+        mousePos.y -= Tile::TILE_WIDTH / 2;
+
+        if ( tilePaintingType == static_cast<int>(TilePaintingType::textured) ) {
+            if ( selectedTileRect != nullptr ) {
+                selectedTileRect->draw( mousePos );
+            }
+        } else { // colored
+            coloredModelTile.draw( mousePos );
+        }
+        
+    }
 
 }
 

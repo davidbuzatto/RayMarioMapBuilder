@@ -1,13 +1,7 @@
 editar de fato os tiles
-    bloco invisível na edição de blocos (componente bloco invisível)
-    
+    implementar funcionalidades de inserção de componentes faltantes (blocos, itens e baddies)
     bloco de mensagem: permitir definir texto
-    tiles de cenário/ fim de fase montar os blocos?
-	ao selecionar algum componte, mostrar no mouse um preview com alpha
-    definir retângulos para organizar e permitir interação com mouse
-    mudar lógica de interação com o editor do mapa
-       escolher componente e replicar nos tiles ao selecionar
-    defazer/refazer
+	ferramenta de seleção?
     ferramenta de borracha/exclusão
     ferramenta de cópia:
         copiar para direita até o fim,
@@ -18,3 +12,6 @@ editar de fato os tiles
         coluna inteira
         seleção de mais de uma linha (coluna) e aplicar cópias para direita e esquerda e linha inteira
         seleção de mais de uma coluna e aplicar cópias para cima e para baixo
+    tiles de cenário/fim de fase montar os blocos?
+    defazer/refazer
+    exportar

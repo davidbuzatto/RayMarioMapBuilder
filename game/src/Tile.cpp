@@ -18,8 +18,9 @@ Tile::Tile( Vector2 pos, Color color, float alpha )
     color( color ),
     alpha( alpha ),
     texture( nullptr ),
-    selected( false ),
-    visible( true ) {
+    collisionType( TileCollisionType::non_solid ),
+    visible( true ),
+    selected( false ) {
 }
 
 Tile::Tile( Vector2 pos, Texture2D* texture, float alpha )
@@ -29,8 +30,9 @@ Tile::Tile( Vector2 pos, Texture2D* texture, float alpha )
     color( BLACK ),
     alpha( alpha ),
     texture( texture ),
-    selected( false ),
-    visible( true ) {
+    collisionType( TileCollisionType::non_solid ),
+    visible( true ),
+    selected( false ) {
 }
 
 Tile::~Tile() = default;
@@ -44,7 +46,17 @@ void Tile::draw() {
         if ( texture != nullptr ) {
             DrawTexture( *texture, pos.x, pos.y, WHITE );
         } else {
-            DrawRectangle( pos.x, pos.y, dim.x, dim.y, color );
+            DrawRectangle( pos.x, pos.y, dim.x, dim.y, Fade( color, alpha ) );
+        }
+    }
+}
+
+void Tile::draw( float customFade ) {
+    if ( visible ) {
+        if ( texture != nullptr ) {
+            DrawTexture( *texture, pos.x, pos.y, WHITE );
+        } else {
+            DrawRectangle( pos.x, pos.y, dim.x, dim.y, Fade( color, customFade ) );
         }
     }
 }
@@ -55,6 +67,16 @@ void Tile::draw( Vector2 drawPos ) {
             DrawTexture( *texture, drawPos.x, drawPos.y, WHITE );
         } else {
             DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, Fade( color, alpha ) );
+        }
+    }
+}
+
+void Tile::draw( Vector2 drawPos, float customFade ) {
+    if ( visible ) {
+        if ( texture != nullptr ) {
+            DrawTexture( *texture, drawPos.x, drawPos.y, WHITE );
+        } else {
+            DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, Fade( color, customFade ) );
         }
     }
 }
@@ -106,10 +128,59 @@ void Tile::setAlpha( float alpha ) {
     this->alpha = alpha;
 }
 
+Texture2D* Tile::getTexture() {
+    return texture;
+}
+
+void Tile::setTexture( Texture2D* texture ) {
+    this->texture = texture;
+}
+
 bool Tile::isSelected() const {
     return selected;
 }
 
 void Tile::setSelected( bool selected ) {
     this->selected = selected;
+}
+
+bool Tile::isVisible() const {
+    return visible;
+}
+
+void Tile::setVisible( bool visible ) {
+    this->visible = visible;
+}
+
+TileCollisionType Tile::getCollisionType() {
+    return collisionType;
+}
+
+void Tile::setCollisionType( TileCollisionType collisionType ) {
+    this->collisionType = collisionType;
+}
+
+void Tile::copyData( Tile& tile, TileCollisionType collisionType, bool visible ) {
+
+    color = tile.color;
+    alpha = tile.alpha;
+    texture = tile.texture;
+    this->collisionType = collisionType;
+    this->visible = visible;
+
+}
+
+TileCollisionType Tile::getCollisionTypeFromInt( int collisionTypeInt ) {
+    switch ( collisionTypeInt ) {
+        case 0:
+            return TileCollisionType::solid;
+        case 1:
+            return TileCollisionType::solid_from_above;
+        case 2:
+            return TileCollisionType::solid_only_for_baddies;
+        case 3:
+            return TileCollisionType::non_solid;
+        default:
+            return TileCollisionType::solid;
+    }
 }

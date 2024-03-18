@@ -93,7 +93,7 @@ class MapEditor : public virtual Drawable {
     std::vector<std::string> pipeColors{ "blue", "darkgray", "gray", "green", "orange", "pink", "purple", "red", "yellow" };
     std::string pipeColorOptions;
 
-    Tile dummyTile;
+    Tile coloredModelTile;
 
     // map properties
     Color backgroundColor;
@@ -115,6 +115,7 @@ class MapEditor : public virtual Drawable {
 
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );
+    Tile* getTileFromPosition( Vector2 &mousePos );
     void deselectTile( Vector2 &mousePos );
     void deselectTiles();
     bool isTileSelected( Vector2 &mousePos ) const;

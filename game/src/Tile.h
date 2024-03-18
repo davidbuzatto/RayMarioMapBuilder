@@ -9,6 +9,7 @@
 
 #include "Drawable.h"
 #include "raylib.h"
+#include "TileCollisionType.h"
 
 class Tile : public virtual Drawable {
 
@@ -17,10 +18,9 @@ class Tile : public virtual Drawable {
     Color color;
     float alpha;
     Texture2D* texture;
-
-    bool selected;
+    TileCollisionType collisionType;
     bool visible;
-    
+    bool selected;
     
 public:
 
@@ -32,7 +32,9 @@ public:
 
     void inputAndUpdate();
     void draw() override;
+    void draw( float customFade );
     void draw( Vector2 drawPos );
+    void draw( Vector2 drawPos, float customFade );
 
     Vector2& getPos();
     Vector2& getDim();
@@ -49,7 +51,20 @@ public:
     float* getAlpha();
     void setAlpha( float alpha );
 
+    Texture2D* getTexture();
+    void setTexture( Texture2D* texture );
+
     bool isSelected() const;
     void setSelected( bool selected );
+
+    bool isVisible() const;
+    void setVisible( bool visible );
+
+    TileCollisionType getCollisionType();
+    void setCollisionType( TileCollisionType collisionType );
+
+    void copyData( Tile& tile, TileCollisionType collisionType, bool visible );
+
+    static TileCollisionType getCollisionTypeFromInt( int collisionTypeInt );
     
 };
