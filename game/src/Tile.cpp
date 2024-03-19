@@ -6,12 +6,10 @@
  * @copyright Copyright (c) 2024
  */
 #include <iostream>
-#include <string>
-
 #include "Tile.h"
 #include "raylib.h"
 
-Tile::Tile( Vector2 pos, Color color, float alpha )
+Tile::Tile( Vector2 pos, Color color, float alpha, Vector2 drawOffset )
     :
     pos( pos ),
     dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
@@ -20,10 +18,11 @@ Tile::Tile( Vector2 pos, Color color, float alpha )
     texture( nullptr ),
     collisionType( TileCollisionType::non_solid ),
     visible( true ),
-    selected( false ) {
+    selected( false ),
+    drawOffset( drawOffset ) {
 }
 
-Tile::Tile( Vector2 pos, Texture2D* texture, float alpha )
+Tile::Tile( Vector2 pos, Texture2D* texture, float alpha, Vector2 drawOffset )
     :
     pos( pos ),
     dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
@@ -32,7 +31,8 @@ Tile::Tile( Vector2 pos, Texture2D* texture, float alpha )
     texture( texture ),
     collisionType( TileCollisionType::non_solid ),
     visible( true ),
-    selected( false ) {
+    selected( false ),
+    drawOffset( drawOffset ) {
 }
 
 Tile::~Tile() = default;
@@ -44,9 +44,9 @@ void Tile::inputAndUpdate() {
 void Tile::draw() {
     if ( visible ) {
         if ( texture != nullptr ) {
-            DrawTexture( *texture, pos.x, pos.y, WHITE );
+            DrawTexture( *texture, pos.x + drawOffset.x, pos.y + drawOffset.y, WHITE );
         } else {
-            DrawRectangle( pos.x, pos.y, dim.x, dim.y, Fade( color, alpha ) );
+            DrawRectangle( pos.x + drawOffset.x, pos.y + drawOffset.y, dim.x, dim.y, Fade( color, alpha ) );
         }
     }
 }
@@ -54,19 +54,27 @@ void Tile::draw() {
 void Tile::draw( float customFade ) {
     if ( visible ) {
         if ( texture != nullptr ) {
-            DrawTexture( *texture, pos.x, pos.y, WHITE );
+            DrawTexture( *texture, pos.x + drawOffset.x, pos.y + drawOffset.y, WHITE );
         } else {
-            DrawRectangle( pos.x, pos.y, dim.x, dim.y, Fade( color, customFade ) );
+            DrawRectangle( pos.x + drawOffset.x, pos.y + drawOffset.y, dim.x, dim.y, Fade( color, customFade ) );
         }
     }
 }
 
-void Tile::draw( Vector2 drawPos ) {
+void Tile::draw( Vector2 drawPos, bool alignCenter ) {
     if ( visible ) {
         if ( texture != nullptr ) {
-            DrawTexture( *texture, drawPos.x, drawPos.y, WHITE );
+            if ( alignCenter ) {
+                DrawTexture( *texture, drawPos.x - texture->width / 2 + drawOffset.x, drawPos.y - texture->height / 2 + drawOffset.y, WHITE );
+            } else {
+                DrawTexture( *texture, drawPos.x + drawOffset.x, drawPos.y + drawOffset.y, WHITE );
+            }
         } else {
-            DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, Fade( color, alpha ) );
+            if ( alignCenter ) {
+                DrawRectangle( drawPos.x - dim.x/2 + drawOffset.x, drawPos.y - dim.y/2 + drawOffset.y, dim.x, dim.y, Fade( color, alpha ) );
+            } else {
+                DrawRectangle( drawPos.x + drawOffset.x, drawPos.y + drawOffset.y, dim.x, dim.y, Fade( color, alpha ) );
+            }
         }
     }
 }
@@ -167,6 +175,7 @@ void Tile::copyData( Tile& tile, TileCollisionType collisionType, bool visible )
     texture = tile.texture;
     this->collisionType = collisionType;
     this->visible = visible;
+    drawOffset = tile.drawOffset;
 
 }
 
@@ -183,4 +192,16 @@ TileCollisionType Tile::getCollisionTypeFromInt( int collisionTypeInt ) {
         default:
             return TileCollisionType::solid;
     }
+}
+
+void Tile::resetTile( Tile& tile ) {
+
+    tile.color = WHITE;
+    tile.alpha = 0;
+    tile.texture = nullptr;
+    tile.collisionType = TileCollisionType::non_solid;
+    tile.visible = true;
+    tile.selected = false;
+    tile.drawOffset = Vector2( 0, 0 );
+
 }

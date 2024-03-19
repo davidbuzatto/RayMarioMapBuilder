@@ -54,7 +54,7 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
     toogleGroupInsertRect( Rectangle( pos.x, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 44, 44 ) ),
     checkShowGridRect( Rectangle( pos.x + minColumns * Tile::TILE_WIDTH - 80, pos.y + tileComposerDim.y + Tile::TILE_WIDTH + 10, 20, 20 ) ),
     checkPlayMusicRect( Rectangle( checkShowGridRect.x, checkShowGridRect.y + checkShowGridRect.height + 10, 20, 20 ) ),
-    activeInsertOption( static_cast<int>(ComponentInsertionType::tiles) ),
+    activeInsertOption( static_cast<int>(ComponentInsertionType::tiles ) ),
 
     mapPropertiesRect( Rectangle( layersPreviewRect.x + layersPreviewRect.width + 10, layersPreviewRect.y, 260, 270 )  ),
     spinnerLinesRect( Rectangle( mapPropertiesRect.x + 125, mapPropertiesRect.y + 10, 100, 20 ) ),
@@ -97,7 +97,23 @@ MapEditor::MapEditor( Vector2 pos, GameWorld *gw )
         terrainRect.y,
         55,
         componentPropertiesRect.height - 50 ) ),
-    selectedTileRect( nullptr )
+    selectedTile( nullptr ),
+
+    staticRect( Rectangle(
+        componentPropertiesRect.x + 10,
+        componentPropertiesRect.y + 15,
+        52,
+        componentPropertiesRect.height - 25 ) ),
+    interactiveRect( Rectangle(
+        staticRect.x + staticRect.width + 10,
+        staticRect.y,
+        88,
+        componentPropertiesRect.height - 25 ) ),
+    selectedBlock( nullptr ),
+    selectedItem( nullptr ),
+    selectedBaddie( nullptr ),
+    mario( Vector2( 0, 0 ), nullptr, 1, Vector2( 0, -8 ) ),
+    lastMarioTile( nullptr )
 
 {
 
@@ -257,8 +273,8 @@ void MapEditor::drawLayerPreview( int x, int y, int tileWidth, bool active, cons
 }
 
 void MapEditor::highlightSelectedTile( Tile& tile ) const {
-        DrawRectangleRec( tile.getRectangle(), Fade( BLUE, 0.3 ) );
-        DrawRectangleLinesEx( tile.getRectangle(), 3, BLUE );
+    DrawRectangleRec( tile.getRectangle(), Fade( BLUE, 0.3 ) );
+    DrawRectangleLinesEx( tile.getRectangle(), 3, BLUE );
 }
 
 void MapEditor::inputAndUpdate() {
@@ -272,12 +288,24 @@ void MapEditor::inputAndUpdate() {
             int p = 0;
 
             for ( int i = 0; i < 18; i += 2 ) {
-                tilesToSelect.push_back( Tile( Vector2( terrainRect.x + 10,
-                                                        terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
-                                               &textures[TextFormat( "%c%d", 'A' + i, k )], 1 ) );
-                tilesToSelect.push_back( Tile( Vector2( terrainRect.x + 15 + Tile::TILE_WIDTH,
-                                                        terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
-                                               &textures[TextFormat( "%c%d", 'A' + ( i + 1 ), k )], 1 ) );
+                tilesToSelect.push_back(
+                    Tile( 
+                        Vector2( 
+                            terrainRect.x + 10,
+                            terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p
+                        ),
+                        &textures[TextFormat( "%c%d", 'A' + i, k )], 1
+                    )
+                );
+                tilesToSelect.push_back(
+                    Tile(
+                        Vector2(
+                            terrainRect.x + 15 + Tile::TILE_WIDTH,
+                            terrainRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p
+                        ),
+                        &textures[TextFormat( "%c%d", 'A' + ( i + 1 ), k )], 1
+                    )
+                );
                 p++;
             }
 
@@ -288,23 +316,161 @@ void MapEditor::inputAndUpdate() {
             int p = 0;
 
             for ( int i = 0; i < 4; i++ ) {
-                pipesToSelect.push_back( Tile( Vector2( pipesRect.x + 10,
-                                                        pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
-                                               &textures[TextFormat( "pipe_%s%d", color.c_str(), i )], 1 ) );
+                pipesToSelect.push_back(
+                    Tile(
+                        Vector2(
+                            pipesRect.x + 10,
+                            pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p
+                        ),
+                        &textures[TextFormat( "pipe_%s%d", color.c_str(), i )], 1
+                    )
+                );
                 p++;
             }
             for ( int i = 4; i < 6; i++ ) {
-                pipesToSelect.push_back( Tile( Vector2( pipesRect.x + 10,
-                                                        pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p ),
-                                               &textures[TextFormat( "sm_pipe_%s%d", color.c_str(), ( i - 4 ) )], 1 ) );
+                pipesToSelect.push_back(
+                    Tile(
+                        Vector2(
+                            pipesRect.x + 10,
+                            pipesRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * p
+                        ),
+                        &textures[TextFormat( "sm_pipe_%s%d", color.c_str(), ( i - 4 ) )], 1
+                    )
+                );
                 p++;
             }
 
         }
-        
 
-        selectedTileRect = tilesToSelect.data();
-        selectedTileRect->setSelected( true );
+        selectedTile = tilesToSelect.data();
+        selectedTile->setSelected( true );
+
+        for ( int i = 0; i < 5; i++ ) {
+            blocksToSelect.push_back(
+                Tile(
+                    Vector2(
+                        staticRect.x + 10,
+                        staticRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i
+                    ),
+                    &textures[TextFormat( "block%d", i )], 1
+                )
+            );
+        }
+
+        for ( int i = 5; i < 9; i++ ) {
+            blocksToSelect.push_back(
+                Tile(
+                    Vector2(
+                        interactiveRect.x + 10,
+                        interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 5 )
+                    ),
+                    &textures[TextFormat( "block%d", i )], 1
+                )
+            );
+        }
+
+        for ( int i = 9; i < 15; i++ ) {
+            blocksToSelect.push_back(
+                Tile(
+                    Vector2(
+                        interactiveRect.x + 10 + Tile::TILE_WIDTH + 4,
+                        interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 9 )
+                    ),
+                    &textures[TextFormat( "block%d", i )], 1
+                )
+            );
+        }
+
+        selectedBlock = blocksToSelect.data();
+        selectedBlock->setSelected( true );
+
+        std::vector itemsTextures{ &textures["coin"], &textures["yoshiCoin"] };
+        std::vector itemsOffsets{ Vector2( 0, 0 ), Vector2( 0, 0 ) };
+        int offset = 0;
+
+        for ( size_t i = 0; i < itemsTextures.size(); i++ ) {
+            itemsToSelect.push_back(
+                Tile(
+                    Vector2(
+                        componentPropertiesRect.x + 10,
+                        componentPropertiesRect.y + 10 + offset
+                    ),
+                    itemsTextures[i], 1, itemsOffsets[i]
+                )
+            );
+            offset += itemsTextures[i]->height + 4;
+        }
+
+        selectedItem = itemsToSelect.data();
+        selectedItem->setSelected( true );
+
+        std::vector baddiesTextures{
+            &textures["goombaL"],
+            &textures["flyingGoombaL"],
+            &textures["redKoopaTroopaL"],
+            &textures["greenKoopaTroopaL"],
+            &textures["blueKoopaTroopaL"],
+            &textures["yellowKoopaTroopaL"],
+            &textures["rexL"],
+            &textures["montyMoleL"],
+            &textures["bobOmbL"],
+            &textures["bulletBillL"],
+            &textures["buzzyBeetleL"],
+            &textures["mummyBeetleL"],
+            &textures["swooperL"],
+            &textures["banzaiBillL"],
+            &textures["muncher"],
+            &textures["piranhaPlant"],
+            &textures["jumpingPiranhaPlant"]
+        };
+
+        offset = 0;
+        int max = baddiesTextures.size();
+        int marginLeft = 0;
+        int maxWidth = 0;
+
+        std::vector intervals{
+            Vector2( 0, 2 ),
+            Vector2( 2, 6 ),
+            Vector2( 6, 13 ),
+            Vector2( 13, 14 ),
+            Vector2( 14, max )
+        };
+
+        for ( const auto& interval : intervals ) {
+
+            marginLeft += maxWidth + 10;
+            maxWidth = 0;
+            offset = 0;
+            size_t ini = static_cast<size_t>( interval.x );
+            size_t end = static_cast<size_t>( interval.y );
+
+            for ( size_t i = ini; i < end; i++ ) {
+                if ( maxWidth < baddiesTextures[i]->width ) {
+                    maxWidth = baddiesTextures[i]->width;
+                }
+            }
+
+            for ( size_t i = ini; i < end; i++ ) {
+                baddiesToSelect.push_back(
+                    Tile(
+                        Vector2(
+                            componentPropertiesRect.x + marginLeft + maxWidth / 2 - baddiesTextures[i]->width / 2,
+                            componentPropertiesRect.y + 10 + offset
+                        ),
+                        baddiesTextures[i], 1
+                    )
+                );
+                offset += baddiesTextures[i]->height + 10;
+            }
+
+        }
+
+        selectedBaddie = baddiesToSelect.data();
+        selectedBaddie->setSelected( true );
+
+        mario.setTexture( &textures["marioR"] );
+
         resourceDependantComponentsCreated = true;
 
     }
@@ -318,7 +484,10 @@ void MapEditor::inputAndUpdate() {
     componentPropertiesRect.height = guiContainerRect.height - mapPropertiesRect.height - 40;
 
     terrainRect.height = componentPropertiesRect.height - 50;
-    pipesRect.height = componentPropertiesRect.height - 50;
+    pipesRect.height = terrainRect.height;
+
+    staticRect.height = componentPropertiesRect.height - 25;
+    interactiveRect.height = staticRect.height;
 
     Vector2 mousePos = GetMousePosition();
 
@@ -341,12 +510,32 @@ void MapEditor::inputAndUpdate() {
             Tile* tile = getTileFromPosition( mousePos );
 
             if ( tile != nullptr ) {
-                if ( tilePaintingType == static_cast<int>( TilePaintingType::textured ) ) {
-                    if ( selectedTileRect != nullptr ) {
-                        tile->copyData( *selectedTileRect, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                if ( activeInsertOption == static_cast<int>( ComponentInsertionType::tiles ) ) {
+                    if ( tilePaintingType == static_cast<int>( TilePaintingType::textured ) ) {
+                        if ( selectedTile != nullptr ) {
+                            tile->copyData( *selectedTile, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                        }
+                    } else { // colored
+                        tile->copyData( coloredModelTile, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
                     }
-                } else { // colored
-                    tile->copyData( coloredModelTile, Tile::getCollisionTypeFromInt( tileCollisionType), tileVisible );
+                } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::blocks ) ) {
+                    if ( selectedBlock != nullptr ) {
+                        tile->copyData( *selectedBlock, TileCollisionType::solid, true );
+                    }
+                } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::items ) ) {
+                    if ( selectedItem != nullptr ) {
+                        tile->copyData( *selectedItem, TileCollisionType::solid, true );
+                    }
+                } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::baddies ) ) {
+                    if ( selectedBaddie != nullptr ) {
+                        tile->copyData( *selectedBaddie, TileCollisionType::solid, true );
+                    }
+                } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::mario ) ) {
+                    tile->copyData( mario, TileCollisionType::solid, true );
+                    if ( lastMarioTile != nullptr ) {
+                        Tile::resetTile( *lastMarioTile );
+                    }
+                    lastMarioTile = tile;
                 }
             }
             
@@ -360,11 +549,11 @@ void MapEditor::inputAndUpdate() {
             for ( int i = ini; i < end; i++ ) {
                 Tile& tile = tilesToSelect[i];
                 if ( CheckCollisionPointRec( mousePos, tile.getRectangle() ) ) {
-                    if ( selectedTileRect != nullptr ) {
-                        selectedTileRect->setSelected( false );
+                    if ( selectedTile != nullptr ) {
+                        selectedTile->setSelected( false );
                     }
-                    selectedTileRect = &tile;
-                    selectedTileRect->setSelected( true );
+                    selectedTile = &tile;
+                    selectedTile->setSelected( true );
                     break;
                 }
             }
@@ -375,11 +564,50 @@ void MapEditor::inputAndUpdate() {
             for ( int i = ini; i < end; i++ ) {
                 Tile& tile = pipesToSelect[i];
                 if ( CheckCollisionPointRec( mousePos, tile.getRectangle() ) ) {
-                    if ( selectedTileRect != nullptr ) {
-                        selectedTileRect->setSelected( false );
+                    if ( selectedTile != nullptr ) {
+                        selectedTile->setSelected( false );
                     }
-                    selectedTileRect = &tile;
-                    selectedTileRect->setSelected( true );
+                    selectedTile = &tile;
+                    selectedTile->setSelected( true );
+                    break;
+                }
+            }
+
+        } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::blocks ) ) {
+
+            for ( auto& tile : blocksToSelect ) {
+                if ( CheckCollisionPointRec( mousePos, tile.getRectangle() ) ) {
+                    if ( selectedBlock != nullptr ) {
+                        selectedBlock->setSelected( false );
+                    }
+                    selectedBlock = &tile;
+                    selectedBlock->setSelected( true );
+                    break;
+                }
+            }
+
+        } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::items ) ) {
+
+            for ( auto& tile : itemsToSelect ) {
+                if ( CheckCollisionPointRec( mousePos, tile.getRectangle() ) ) {
+                    if ( selectedItem != nullptr ) {
+                        selectedItem->setSelected( false );
+                    }
+                    selectedItem = &tile;
+                    selectedItem->setSelected( true );
+                    break;
+                }
+            }
+
+        } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::baddies ) ) {
+
+            for ( auto& tile : baddiesToSelect ) {
+                if ( CheckCollisionPointRec( mousePos, tile.getRectangle() ) ) {
+                    if ( selectedBaddie != nullptr ) {
+                        selectedBaddie->setSelected( false );
+                    }
+                    selectedBaddie = &tile;
+                    selectedBaddie->setSelected( true );
                     break;
                 }
             }
@@ -401,12 +629,26 @@ void MapEditor::inputAndUpdate() {
                 Tile* tile = getTileFromPosition( mousePos );
 
                 if ( tile != nullptr ) {
-                    if ( tilePaintingType == static_cast<int>( TilePaintingType::textured ) ) {
-                        if ( selectedTileRect != nullptr ) {
-                            tile->copyData( *selectedTileRect, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                    if ( activeInsertOption == static_cast<int>( ComponentInsertionType::tiles ) ) {
+                        if ( tilePaintingType == static_cast<int>( TilePaintingType::textured ) ) {
+                            if ( selectedTile != nullptr ) {
+                                tile->copyData( *selectedTile, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                            }
+                        } else { // colored
+                            tile->copyData( coloredModelTile, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
                         }
-                    } else { // colored
-                        tile->copyData( coloredModelTile, Tile::getCollisionTypeFromInt( tileCollisionType ), tileVisible );
+                    } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::blocks ) ) {
+                        if ( selectedBlock != nullptr ) {
+                            tile->copyData( *selectedBlock, TileCollisionType::solid, true );
+                        }
+                    } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::items ) ) {
+                        if ( selectedItem != nullptr ) {
+                            tile->copyData( *selectedItem, TileCollisionType::solid, true );
+                        }
+                    } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::baddies ) ) {
+                        if ( selectedBaddie != nullptr ) {
+                            tile->copyData( *selectedBaddie, TileCollisionType::solid, true );
+                        }
                     }
                 }
 
@@ -596,7 +838,7 @@ void MapEditor::draw() {
     GuiToggleGroup( toogleGroupInsertRect, ";;;;", &activeInsertOption );
     DrawTexture( textures["B1"], toogleGroupInsertRect.x + 6, toogleGroupInsertRect.y + 6, WHITE );
     DrawTexture( textures["block9"], toogleGroupInsertRect.x + toogleGroupInsertRect.width + 8, toogleGroupInsertRect.y + 6, WHITE );
-    DrawTexture( textures["coin"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 2 + 14, toogleGroupInsertRect.y + 6, WHITE );
+    DrawTexture( textures["coin"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 2 + 10, toogleGroupInsertRect.y + 6, WHITE );
     DrawTexture( textures["goombaR"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 3 + 12, toogleGroupInsertRect.y + 6, WHITE );
     DrawTexture( textures["marioR"], toogleGroupInsertRect.x + toogleGroupInsertRect.width * 4 + 12, toogleGroupInsertRect.y + 2, WHITE );
 
@@ -689,110 +931,36 @@ void MapEditor::draw() {
 
         GuiGroupBox( componentPropertiesRect, "Blocks" );
 
-        Rectangle staticRect(
-            componentPropertiesRect.x + 10,
-            componentPropertiesRect.y + 15,
-            52,
-            componentPropertiesRect.height - 25 );
         GuiGroupBox( staticRect, "Static" );
-
-        Rectangle interactiveRect(
-            staticRect.x + staticRect.width + 10,
-            staticRect.y,
-            88,
-            componentPropertiesRect.height - 25 );
         GuiGroupBox( interactiveRect, "Interactive" );
 
-        for ( int i = 0; i < 5; i++ ) {
-            DrawTexture( textures[TextFormat( "block%d", i )],
-                         staticRect.x + 10,
-                         staticRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * i, WHITE );
-        }
-
-        for ( int i = 5; i < 9; i++ ) {
-            DrawTexture( textures[TextFormat( "block%d", i )],
-                         interactiveRect.x + 10,
-                         interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 5 ), WHITE );
-        }
-
-        for ( int i = 9; i < 15; i++ ) {
-            DrawTexture( textures[TextFormat( "block%d", i )],
-                         interactiveRect.x + 10 + Tile::TILE_WIDTH + 4,
-                         interactiveRect.y + 10 + ( Tile::TILE_WIDTH + 4 ) * ( i - 9 ), WHITE );
+        for ( auto& block : blocksToSelect ) {
+            block.draw();
+            if ( block.isSelected() ) {
+                highlightSelectedTile( block );
+            }
         }
 
     } else if ( activeInsertOption == static_cast<int>(ComponentInsertionType::items) ) {
 
         GuiGroupBox( componentPropertiesRect, "Items" );
-        std::vector<Texture2D*> items{ &textures["coin"], &textures["yoshiCoin"] };
 
-        int offset = 0;
-
-        for ( size_t i = 0; i < items.size(); i++ ) {
-            DrawTexture( *( items[i] ),
-                         componentPropertiesRect.x + 10,
-                         componentPropertiesRect.y + 10 + offset, WHITE);
-            offset += items[i]->height + 4;
+        for ( auto& item : itemsToSelect ) {
+            item.draw();
+            if ( item.isSelected() ) {
+                highlightSelectedTile( item );
+            }
         }
         
     } else if ( activeInsertOption == static_cast<int>(ComponentInsertionType::baddies) ) {
 
         GuiGroupBox( componentPropertiesRect, "Baddies" );
 
-        std::vector<Texture2D*> baddies {
-            &textures["goombaL"],
-            &textures["flyingGoombaL"],
-            &textures["redKoopaTroopaL"],
-            &textures["greenKoopaTroopaL"],
-            &textures["blueKoopaTroopaL"],
-            &textures["yellowKoopaTroopaL"],
-            &textures["rexL"],
-            &textures["montyMoleL"],
-            &textures["bobOmbL"],
-            &textures["bulletBillL"],
-            &textures["buzzyBeetleL"],
-            &textures["mummyBeetleL"],
-            &textures["swooperL"],
-            &textures["banzaiBillL"],
-            &textures["muncher"],
-            &textures["piranhaPlant"],
-            &textures["jumpingPiranhaPlant"]
-        };
-
-        int offset = 0;
-        int max = baddies.size();
-        int marginLeft = 0;
-        int maxWidth = 0;
-
-        std::vector<Vector2> intervals{
-            Vector2( 0, 2 ),
-            Vector2( 2, 6 ),
-            Vector2( 6, 13 ),
-            Vector2( 13, 14 ),
-            Vector2( 14, max )
-        };
-
-        for ( const auto& interval : intervals ) {
-
-            marginLeft += maxWidth + 10;
-            maxWidth = 0;
-            offset = 0;
-            size_t ini = static_cast<size_t>(interval.x);
-            size_t end = static_cast<size_t>(interval.y);
-
-            for ( size_t i = ini; i < end; i++ ) {
-                if ( maxWidth < baddies[i]->width ) {
-                    maxWidth = baddies[i]->width;
-                }
+        for ( auto& baddie : baddiesToSelect ) {
+            baddie.draw();
+            if ( baddie.isSelected() ) {
+                highlightSelectedTile( baddie );
             }
-
-            for ( size_t i = ini; i < end; i++ ) {
-                DrawTexture( *( baddies[i] ),
-                             componentPropertiesRect.x + marginLeft + maxWidth / 2 - baddies[i]->width / 2,
-                             componentPropertiesRect.y + 10 + offset, WHITE );
-                offset += baddies[i]->height + 10;
-            }
-
         }
 
     }
@@ -811,15 +979,31 @@ void MapEditor::draw() {
     Vector2 mousePos = GetMousePosition();
     if ( isMouseInsideEditor( mousePos ) ) {
 
-        mousePos.x -= Tile::TILE_WIDTH / 2;
-        mousePos.y -= Tile::TILE_WIDTH / 2;
+        /*mousePos.x -= Tile::TILE_WIDTH / 2;
+        mousePos.y -= Tile::TILE_WIDTH / 2;*/
 
-        if ( tilePaintingType == static_cast<int>(TilePaintingType::textured) ) {
-            if ( selectedTileRect != nullptr ) {
-                selectedTileRect->draw( mousePos );
+        if ( activeInsertOption == static_cast<int>( ComponentInsertionType::tiles ) ) {
+            if ( tilePaintingType == static_cast<int>( TilePaintingType::textured ) ) {
+                if ( selectedTile != nullptr ) {
+                    selectedTile->draw( mousePos, true );
+                }
+            } else { // colored
+                coloredModelTile.draw( mousePos, true );
             }
-        } else { // colored
-            coloredModelTile.draw( mousePos );
+        } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::blocks ) ) {
+            if ( selectedBlock != nullptr ) {
+                selectedBlock->draw( mousePos, true );
+            }
+        } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::items ) ) {
+            if ( selectedItem != nullptr ) {
+                selectedItem->draw( mousePos, true );
+            }
+        } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::baddies ) ) {
+            if ( selectedBaddie != nullptr ) {
+                selectedBaddie->draw( mousePos, true );
+            }
+        } else if ( activeInsertOption == static_cast<int>( ComponentInsertionType::mario ) ) {
+            mario.draw( mousePos, true );
         }
         
     }

@@ -107,9 +107,23 @@ class MapEditor : public virtual Drawable {
     // component rectangles and helper attributes for GUI construction and interaction
     Rectangle terrainRect;
     Rectangle pipesRect;
-    Tile* selectedTileRect;
+    Tile* selectedTile;
     std::vector<Tile> tilesToSelect;
     std::vector<Tile> pipesToSelect;
+
+    Rectangle staticRect;
+    Rectangle interactiveRect;
+    Tile* selectedBlock;
+    std::vector<Tile> blocksToSelect;
+
+    Tile* selectedItem;
+    std::vector<Tile> itemsToSelect;
+
+    Tile* selectedBaddie;
+    std::vector<Tile> baddiesToSelect;
+
+    Tile mario;
+    Tile* lastMarioTile;
 
     bool resourceDependantComponentsCreated{ false };
 

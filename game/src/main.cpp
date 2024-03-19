@@ -8,7 +8,7 @@
  */
 #include "GameWindow.h"
 
-int main( void ) {
+int main() {
 
     GameWindow gameWindow(
         1280, 720,                 // dimensions

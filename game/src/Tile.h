@@ -21,19 +21,20 @@ class Tile : public virtual Drawable {
     TileCollisionType collisionType;
     bool visible;
     bool selected;
+    Vector2 drawOffset;
     
 public:
 
     static constexpr int TILE_WIDTH = 32;
 
-    Tile( Vector2 pos, Color color, float alpha );
-    Tile( Vector2 pos, Texture2D* texture, float alpha );
+    Tile( Vector2 pos, Color color, float alpha, Vector2 drawOffset = Vector2( 0, 0 ) );
+    Tile( Vector2 pos, Texture2D* texture, float alpha, Vector2 drawOffset = Vector2( 0, 0 ) );
     virtual ~Tile();
 
     void inputAndUpdate();
     void draw() override;
     void draw( float customFade );
-    void draw( Vector2 drawPos );
+    void draw( Vector2 drawPos, bool alignCenter = false );
     void draw( Vector2 drawPos, float customFade );
 
     Vector2& getPos();
@@ -66,5 +67,6 @@ public:
     void copyData( Tile& tile, TileCollisionType collisionType, bool visible );
 
     static TileCollisionType getCollisionTypeFromInt( int collisionTypeInt );
+    static void resetTile( Tile& tile );
     
 };

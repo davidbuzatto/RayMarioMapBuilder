@@ -1,7 +1,11 @@
 editar de fato os tiles
-    implementar funcionalidades de inserção de componentes faltantes (blocos, itens e baddies)
-    bloco de mensagem: permitir definir texto
+    
+    cuidar dos deslocamentos na inserção
+    replicar deslocamentos nos previews
+    
+    bloco de mensagem: permitir definir texto (popup???) -> mesmo assim implica em mudança na seleção (ferramenta abaixo)
 	ferramenta de seleção?
+    
     ferramenta de borracha/exclusão
     ferramenta de cópia:
         copiar para direita até o fim,
