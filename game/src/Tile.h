@@ -17,18 +17,20 @@ class Tile : public virtual Drawable {
     Vector2 dim;
     Color color;
     float alpha;
+    bool drawSelection;
     Texture2D* texture;
     TileCollisionType collisionType;
     bool visible;
     bool selected;
+    Vector2 mapEditorOffset;
     Vector2 drawOffset;
     
 public:
 
     static constexpr int TILE_WIDTH = 32;
 
-    Tile( Vector2 pos, Color color, float alpha, Vector2 drawOffset = Vector2( 0, 0 ) );
-    Tile( Vector2 pos, Texture2D* texture, float alpha, Vector2 drawOffset = Vector2( 0, 0 ) );
+    Tile( Vector2 pos, Color color, float alpha, bool drawSelection, Vector2 mapEditorOffset, Vector2 drawOffset = Vector2( 0, 0 ) );
+    Tile( Vector2 pos, Texture2D* texture, float alpha, bool drawSelection, Vector2 mapEditorOffset, Vector2 drawOffset = Vector2( 0, 0 ) );
     virtual ~Tile();
 
     void inputAndUpdate();
@@ -67,6 +69,9 @@ public:
     void copyData( Tile& tile, TileCollisionType collisionType, bool visible );
 
     static TileCollisionType getCollisionTypeFromInt( int collisionTypeInt );
-    static void resetTile( Tile& tile );
-    
+    static void resetTile( Tile& tile, bool deselect = false );
+
+private:
+    void drawIfSelected();
+
 };

@@ -127,6 +127,8 @@ class MapEditor : public virtual Drawable {
 
     bool resourceDependantComponentsCreated{ false };
 
+    std::vector<Tile*> selectedTiles;
+
     void computePressedLineAndColumn( Vector2 &mousePos, int &line, int &column ) const;
     void selectTile( Vector2 &mousePos );
     Tile* getTileFromPosition( Vector2 &mousePos );

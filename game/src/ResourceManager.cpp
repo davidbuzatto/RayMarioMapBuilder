@@ -156,6 +156,13 @@ void ResourceManager::loadTextures() {
             }
         }
 
+        // tools
+        if ( loadFromRRES ) {
+            loadTextureFromResource( "resources/images/sprites/blocks/selectTool.png", "selectBlock" );
+        } else {
+            textures["selectBlock"] = LoadTexture( "resources/images/sprites/blocks/selectTool.png" );
+        }
+
         // backgrounds
         if ( loadFromRRES ) {
             loadTextureFromResource( "resources/images/backgrounds/background1.png", "background1" );

@@ -9,29 +9,33 @@
 #include "Tile.h"
 #include "raylib.h"
 
-Tile::Tile( Vector2 pos, Color color, float alpha, Vector2 drawOffset )
+Tile::Tile( Vector2 pos, Color color, float alpha, bool drawSelection, Vector2 mapEditorOffset, Vector2 drawOffset )
     :
     pos( pos ),
     dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
     color( color ),
     alpha( alpha ),
+    drawSelection( drawSelection ),
     texture( nullptr ),
     collisionType( TileCollisionType::non_solid ),
     visible( true ),
     selected( false ),
+    mapEditorOffset( mapEditorOffset ),
     drawOffset( drawOffset ) {
 }
 
-Tile::Tile( Vector2 pos, Texture2D* texture, float alpha, Vector2 drawOffset )
+Tile::Tile( Vector2 pos, Texture2D* texture, float alpha, bool drawSelection, Vector2 mapEditorOffset, Vector2 drawOffset )
     :
     pos( pos ),
     dim( Vector2( TILE_WIDTH, TILE_WIDTH ) ),
     color( BLACK ),
     alpha( alpha ),
+    drawSelection( drawSelection ),
     texture( texture ),
     collisionType( TileCollisionType::non_solid ),
     visible( true ),
     selected( false ),
+    mapEditorOffset( mapEditorOffset ),
     drawOffset( drawOffset ) {
 }
 
@@ -49,6 +53,9 @@ void Tile::draw() {
             DrawRectangle( pos.x + drawOffset.x, pos.y + drawOffset.y, dim.x, dim.y, Fade( color, alpha ) );
         }
     }
+    if ( selected && drawSelection ) {
+        drawIfSelected();
+    }
 }
 
 void Tile::draw( float customFade ) {
@@ -58,6 +65,9 @@ void Tile::draw( float customFade ) {
         } else {
             DrawRectangle( pos.x + drawOffset.x, pos.y + drawOffset.y, dim.x, dim.y, Fade( color, customFade ) );
         }
+    }
+    if ( selected && drawSelection ) {
+        drawIfSelected();
     }
 }
 
@@ -77,6 +87,9 @@ void Tile::draw( Vector2 drawPos, bool alignCenter ) {
             }
         }
     }
+    if ( selected && drawSelection ) {
+        drawIfSelected();
+    }
 }
 
 void Tile::draw( Vector2 drawPos, float customFade ) {
@@ -86,6 +99,9 @@ void Tile::draw( Vector2 drawPos, float customFade ) {
         } else {
             DrawRectangle( drawPos.x, drawPos.y, dim.x, dim.y, Fade( color, customFade ) );
         }
+    }
+    if ( selected && drawSelection ) {
+        drawIfSelected();
     }
 }
 
@@ -194,14 +210,21 @@ TileCollisionType Tile::getCollisionTypeFromInt( int collisionTypeInt ) {
     }
 }
 
-void Tile::resetTile( Tile& tile ) {
+void Tile::resetTile( Tile& tile, bool deselect ) {
 
     tile.color = WHITE;
     tile.alpha = 0;
     tile.texture = nullptr;
     tile.collisionType = TileCollisionType::non_solid;
     tile.visible = true;
-    tile.selected = false;
+    if ( deselect ) {
+        tile.selected = false;
+    }
     tile.drawOffset = Vector2( 0, 0 );
 
+}
+
+void Tile::drawIfSelected() {
+    DrawRectangleLinesEx( Rectangle( pos.x - 2 + mapEditorOffset.x, pos.y - 1 + mapEditorOffset.y, dim.x + 3, dim.y + 3 ), 3, BLACK );
+    DrawCircle( pos.x + dim.x - 6 + mapEditorOffset.x, pos.y + dim.y - 5 + mapEditorOffset.y, 2, Fade( BLACK, 0.5 ) );
 }

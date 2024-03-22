@@ -13,6 +13,7 @@ enum class ComponentInsertionType {
     blocks = 1,
     items = 2,
     baddies = 3,
-    mario = 4
+    mario = 4,
+    select = 5
 
 };
